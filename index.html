@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>العهد والتنمية | نظام إدارة الحملة الانتخابية</title>
 
+
+
   <style>
     :root{
       --green:#2f8f4e;
@@ -682,19 +684,57 @@
       .login-card{padding:24px}
     }
 
-    @media print{
-      body{
-        background:#fff !important;
-      }
-      .topbar, .tabs, .toolbar, .pager, .no-print, .btn, button{
-        display:none !important;
-      }
-      .card{
-        box-shadow:none !important;
-        border:none !important;
-        padding:0 !important;
-      }
-    }
+@media print{
+
+body{
+background:#fff !important;
+font-size:10px !important;
+}
+
+/* إخفاء الأزرار */
+.topbar, .tabs, .toolbar, .pager, .no-print, .btn, button{
+display:none !important;
+}
+
+/* إزالة الظلال */
+.card{
+box-shadow:none !important;
+border:none !important;
+padding:0 !important;
+}
+
+/* تصغير الجدول كله */
+#agreedTable{
+width:100%;
+border-collapse:collapse;
+font-size:10px !important;
+}
+
+/* تصغير الأعمدة */
+#agreedTable th,
+#agreedTable td{
+padding:3px 4px !important;
+font-size:9px !important;
+border:1px solid #ddd;
+}
+
+/* عمود الملاحظات */
+.notesCell{
+font-size:8px !important;
+color:#777 !important;
+max-width:100px !important;
+line-height:1.1 !important;
+}
+
+/* جعل الصفحة عرضية */
+@page{
+size:landscape;
+margin:8mm;
+}
+
+}
+
+
   </style>
 </head>
 <body>
@@ -835,6 +875,7 @@
           </div>
         </div>
 
+
         <div class="filters">
           <div class="field">
             <label>بحث بالاسم أو العائلة أو رقم الناخب أو المركز</label>
@@ -905,27 +946,70 @@
     </div>
 
     <!-- Agreed -->
-    <div id="agreedSection" class="section">
-      <div class="card">
-        <div class="section-title-row">
-          <div class="section-title-left">
-            <div class="section-logo">
-              <img src="logo.png" alt="الشعار">
-            </div>
-            <h3 class="card-title" style="margin:0">✅ الأسماء المتوافق عليها</h3>
-          </div>
+<div id="agreedSection" class="section">
+<div class="card">
 
-          <div class="toolbar">
-            <button class="btn btn-secondary" onclick="printReport('تقرير الأسماء المتوافق عليها', 'agreedTableWrap')">طباعة</button>
-            <button class="btn btn-light" onclick="exportTableToExcel('agreedTable', 'agreed_voters_report')">Excel</button>
-          </div>
-        </div>
+<div class="section-title-row">
+<div class="section-title-left">
+<div class="section-logo">
+<img src="logo.png" alt="الشعار">
+</div>
 
-        <div class="summary-line" id="agreedSummary"></div>
-        <div id="agreedBox"></div>
-      </div>
-    </div>
-  </div>
+<h3 class="card-title" style="margin:0">✅ الأسماء المتفق عليها</h3>
+
+</div>
+</div>
+
+
+<!-- الفلاتر -->
+<div class="filters" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+
+<input
+type="text"
+id="agreedSearchInput"
+class="input"
+placeholder="بحث بالاسم أو العائلة أو مركز الاقتراع"
+/>
+
+<select id="agreedFamilyFilter" class="input">
+<option value="all">كل العائلات</option>
+</select>
+
+<select id="agreedCenterFilter" class="input">
+<option value="all">كل المراكز</option>
+</select>
+
+<select id="agreedListFilter" class="input">
+<option value="all">كل القوائم</option>
+</select>
+
+<button class="btn btn-primary" onclick="buildAgreed()">
+تطبيق الفلتر
+</button>
+
+</div>
+
+
+<!-- أزرار الطباعة -->
+<div class="toolbar">
+<button class="btn btn-secondary"
+onclick="printReport('تقرير الأسماء المتفق عليها','agreedBox')">
+🖨 طباعة
+</button>
+
+<button class="btn btn-light"
+onclick="exportTableToExcel('agreedTable','agreed_voters_report')">
+📊 Excel
+</button>
+</div>
+
+<div class="summary-line" id="agreedSummary"></div>
+
+<div id="agreedBox"></div>
+
+
+</div>
+</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -1036,6 +1120,37 @@
 
     let currentSearchPage = 1;
     let currentSearchResults = [];
+
+
+function fillAgreedFilters(){
+
+const families = [...new Set(voters.map(v=>v.family).filter(Boolean))];
+const centers = [...new Set(voters.map(v=>v.center).filter(Boolean))];
+const lists = Object.keys(LISTS);
+
+const familySelect = document.getElementById("agreedFamilyFilter");
+const centerSelect = document.getElementById("agreedCenterFilter");
+const listSelect = document.getElementById("agreedListFilter");
+
+if(!familySelect || !centerSelect || !listSelect) return;
+
+familySelect.innerHTML = '<option value="all">كل العائلات</option>';
+centerSelect.innerHTML = '<option value="all">كل المراكز</option>';
+listSelect.innerHTML = '<option value="all">كل القوائم</option>';
+
+families.forEach(f=>{
+familySelect.innerHTML += `<option value="${f}">${f}</option>`;
+});
+
+centers.forEach(c=>{
+centerSelect.innerHTML += `<option value="${c}">${c}</option>`;
+});
+
+lists.forEach(l=>{
+listSelect.innerHTML += `<option value="${l}">${l}</option>`;
+});
+
+}
 
     function safeText(v){
       return (v ?? "").toString().trim();
@@ -2210,22 +2325,48 @@ alert("تم اعتماد القرار");
       document.getElementById("weakFamilies").innerHTML = buildFamilyTable(weakest);
     }
 
+
+function getActiveFinalDecision(voterNumber){
+
+const final = finalDecisions.find(d => d.voterNumber === voterNumber);
+
+if(!final) return null;
+
+const finalTime = Number(final.savedAtMs || 0);
+
+const entries = Object.values(perVoterPerUserMap[voterNumber] || {});
+
+const newerConflict = entries.some(e => {
+
+const eTime = Number(e.savedAtMs || 0);
+
+if(eTime <= finalTime) return false;
+
+return e.list !== final.list || e.candidate !== final.candidate;
+
+});
+
+if(newerConflict) return null;
+
+return final;
+
+}
+
+
 function buildDifferencesData(){
 
 const rows = [];
-const seen = new Set(); // لمنع التكرار
+const seen = new Set();
 
 Object.keys(perVoterPerUserMap).forEach(voterNumber => {
 
 if(!voterNumber) return;
 
-/* إذا كان له قرار نهائي لا يظهر في الاختلافات */
+const activeFinal = getActiveFinalDecision(voterNumber);
 
-if(finalDecisions.some(d => d.voterNumber === voterNumber)){
+if(activeFinal){
 return;
 }
-
-/* منع التكرار */
 
 if(seen.has(voterNumber)) return;
 seen.add(voterNumber);
@@ -2234,8 +2375,6 @@ const latestPerUser = perVoterPerUserMap[voterNumber];
 const entries = Object.values(latestPerUser);
 
 if(entries.length < 2) return;
-
-/* القوائم المختلفة */
 
 const uniqueLists = [...new Set(entries.map(x => x.list).filter(Boolean))];
 
@@ -2253,8 +2392,6 @@ diffCount: uniqueLists.length
 }
 
 });
-
-/* ترتيب الاختلافات من الأكبر للأصغر */
 
 rows.sort((a,b)=>b.diffCount - a.diffCount);
 
@@ -2325,45 +2462,40 @@ html += `</tr>`;
       box.innerHTML = html;
     }
 
+
 function buildAgreedData(){
 
 const rows = [];
-const seen = new Set(); // لمنع التكرار
-
-/* القرارات النهائية */
+const seen = new Set();
 
 finalDecisions.forEach(d => {
 
-if(!d.voterNumber) return;
+const activeFinal = getActiveFinalDecision(d.voterNumber);
 
-if(seen.has(d.voterNumber)) return;
-seen.add(d.voterNumber);
+if(!activeFinal) return;
+
+if(seen.has(activeFinal.voterNumber)) return;
+seen.add(activeFinal.voterNumber);
 
 rows.push({
-voterNumber: d.voterNumber,
-name: d.name,
-family: d.family,
-center: d.center,
-list: d.list,
-candidate: d.candidate,
-notes: d.notes || ""
+voterNumber: activeFinal.voterNumber,
+name: activeFinal.name,
+family: activeFinal.family,
+center: activeFinal.center,
+list: activeFinal.list,
+candidate: activeFinal.candidate,
+notes: activeFinal.notes || ""
 });
 
 });
-
-/* الإدخالات العادية */
 
 Object.keys(perVoterPerUserMap).forEach(voterNumber => {
 
 if(!voterNumber) return;
 
-/* إذا كان له قرار نهائي لا نضيفه مرة أخرى */
+const activeFinal = getActiveFinalDecision(voterNumber);
 
-if(finalDecisions.some(d => d.voterNumber === voterNumber)){
-return;
-}
-
-/* منع التكرار */
+if(activeFinal) return;
 
 if(seen.has(voterNumber)) return;
 seen.add(voterNumber);
@@ -2373,10 +2505,8 @@ const entries = Object.values(latestPerUser);
 
 if(!entries.length) return;
 
-const lists = entries.map(x=>x.list).filter(Boolean);
+const lists = entries.map(x => x.list).filter(Boolean);
 const uniqueLists = [...new Set(lists)];
-
-/* الاتفاق */
 
 if(uniqueLists.length === 1){
 
@@ -2387,14 +2517,12 @@ family: entries[0].family,
 center: entries[0].center,
 list: entries[0].list,
 candidate: entries[0].candidate,
-notes: `اتفاق بين ${entries.map(e=>e.user).join(" و ")}`
+notes: `اتفاق بين ${entries.map(e => e.user).join(" و ")}`
 });
 
 }
 
 });
-
-/* ترتيب حسب الاسم */
 
 rows.sort((a,b)=>a.name.localeCompare(b.name,"ar"));
 
@@ -2402,50 +2530,103 @@ return rows;
 
 }
 
-    function buildAgreed(){
-      const rows = buildAgreedData();
-      const box = document.getElementById("agreedBox");
 
-      document.getElementById("agreedSummary").innerHTML = `
-        <span>عدد الأسماء المتوافق عليها: <b>${rows.length}</b></span>
-        <span>—</span>
-        <span>يشترط وجود إدخالين أو أكثر على نفس الناخب</span>
-      `;
+function buildAgreed(){
 
-      if(!rows.length){
-        box.innerHTML = `<div class="danger-box">لا توجد أسماء متوافق عليها حالياً</div>`;
-        return;
+  const search =
+  (document.getElementById("agreedSearchInput")?.value || "")
+  .toLowerCase()
+  .trim();
+
+  const centerFilter =
+  document.getElementById("agreedCenterFilter")?.value || "all";
+
+  const listFilter =
+  document.getElementById("agreedListFilter")?.value || "all";
+
+  const rows = buildAgreedData().filter(r => {
+
+    const name = (r.name || "").toLowerCase();
+    const family = (r.family || "").toLowerCase();
+    const center = (r.center || "").toLowerCase();
+    const voterNumber = (r.voterNumber || "").toString().toLowerCase();
+    const list = (r.list || "").toLowerCase();
+
+    // البحث
+    if(search){
+      if(
+        !name.includes(search) &&
+        !family.includes(search) &&
+        !center.includes(search) &&
+        !voterNumber.includes(search)
+      ){
+        return false;
       }
-
-      box.innerHTML = `
-        <div class="table-wrap" id="agreedTableWrap">
-          <table id="agreedTable">
-            <thead>
-              <tr>
-                <th>الناخب</th>
-                <th>العائلة</th>
-                <th>المركز</th>
-                <th>القائمة</th>
-                <th>المرشح</th>
-		<th>ملاحظات</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows.map(r => `
-                <tr>
-                  <td>${r.name || "-"}</td>
-                  <td>${r.family || "-"}</td>
-                  <td>${r.center || "-"}</td>
-                  <td>${r.list || "-"}</td>
-                  <td>${r.candidate || "-"}</td>
-		  <td class="notesCell">${r.notes || ""}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      `;
     }
+
+    // فلتر المركز
+    if(centerFilter !== "all"){
+      if(r.center !== centerFilter){
+        return false;
+      }
+    }
+
+    // فلتر القائمة
+    if(listFilter !== "all"){
+      if(r.list !== listFilter){
+        return false;
+      }
+    }
+
+    return true;
+
+  });
+
+  const box = document.getElementById("agreedBox");
+
+document.getElementById("agreedSummary").innerHTML = `
+<span>عدد الناخبين: <b>${rows.length}</b></span>
+<span>—</span>
+<span>الأسماء المتوافق عليها</span>
+`;
+
+  if(!rows.length){
+    box.innerHTML = `<div class="danger-box">لا توجد أسماء متوافق عليها حالياً</div>`;
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="table-wrap" id="agreedTableWrap">
+      <table id="agreedTable">
+        <thead>
+          <tr>
+	    <th>#</th>
+            <th>الناخب</th>
+            <th>العائلة</th>
+            <th>المركز</th>
+            <th>القائمة</th>
+            <th>المرشح</th>
+            <th style="width:180px">ملاحظات</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r,i) => `
+            <tr>
+	      <td>${i+1}</td>
+              <td>${r.name || "-"}</td>
+              <td>${r.family || "-"}</td>
+              <td>${r.center || "-"}</td>
+              <td>${r.list || "-"}</td>
+              <td>${r.candidate || "-"}</td>
+              <td class="notesCell">${r.notes || ""}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
 
 window.refreshSystem = async function(){
 
@@ -2494,147 +2675,209 @@ setSyncStatus("تم التحديث");
       URL.revokeObjectURL(url);
     };
 
-    window.printReport = function(title, contentId){
-      const contentEl = document.getElementById(contentId);
-      if(!contentEl){
-        alert("لا يوجد محتوى للطباعة");
-        return;
-      }
 
-      const user = getCurrentUser() || "-";
-      const now = new Date();
-      const nowText = now.toLocaleString("ar-EG");
+window.printReport = function(title, contentId){
+  const contentEl = document.getElementById(contentId);
+let votersCount = 0;
 
-      const printWindow = window.open("", "_blank", "width=1200,height=900");
-      if(!printWindow) return;
+if(contentEl){
+  const rows = contentEl.querySelectorAll("tbody tr");
+  votersCount = rows.length;
+}
 
-      printWindow.document.write(`
-        <html dir="rtl">
-        <head>
-          <meta charset="UTF-8">
-          <title>${title}</title>
-          <style>
-            body{
-              font-family: Arial, Tahoma, sans-serif;
-              direction: rtl;
-              margin:0;
-              padding:0;
-              color:#17212b;
-            }
-            .print-header{
-              position:fixed;
-              top:0;
-              left:0;
-              right:0;
-              background:#fff;
-              border-bottom:2px solid #dbe2e8;
-              padding:18px 28px;
-              z-index:9999;
-            }
-            .header-inner{
-              display:flex;
-              align-items:center;
-              justify-content:space-between;
-              gap:20px;
-            }
-            .brand{
-              display:flex;
-              align-items:center;
-              gap:14px;
-            }
-            .logo{
-              width:72px;
-              height:72px;
-              border:1px solid #dbe2e8;
-              border-radius:16px;
-              padding:6px;
-              box-sizing:border-box;
-              background:#fff;
-            }
-            .logo img{
-              width:100%;
-              height:100%;
-              object-fit:contain;
-            }
-            .title{
-              font-size:24px;
-              font-weight:bold;
-              color:#0f4c8a;
-              margin-bottom:4px;
-            }
-            .sub{
-              font-size:13px;
-              color:#6b7280;
-            }
-            .meta{
-              text-align:left;
-              font-size:13px;
-              color:#374151;
-              line-height:1.8;
-            }
-            .print-body{
-              padding:130px 24px 24px;
-            }
-            h2{
-              margin:0 0 18px;
-              color:#0f4c8a;
-            }
-            table{
-              width:100%;
-              border-collapse:collapse;
-              font-size:14px;
-            }
-            th, td{
-              border:1px solid #dbe2e8;
-              padding:8px;
-              text-align:right;
-              white-space:nowrap;
-            }
-            th{
-              background:#f8fafc;
-              color:#0f4c8a;
-            }
-            @page{
-              size:auto;
-              margin:22mm 10mm 14mm 10mm;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="print-header">
-            <div class="header-inner">
-              <div class="brand">
-                <div class="logo">
-                  <img src="logo.png" alt="logo">
-                </div>
-                <div>
-                  <div class="title">العهد والتنمية</div>
-                  <div class="sub">نظام إدارة الحملة الانتخابية - بيت ساحور</div>
-                  <div class="sub">${title}</div>
-                </div>
-              </div>
+  if(!contentEl){
+    alert("لا يوجد محتوى للطباعة");
+    return;
+  }
 
-              <div class="meta">
-                <div><b>تمت الطباعة بواسطة:</b> ${user}</div>
-                <div><b>التاريخ والوقت:</b> ${nowText}</div>
-              </div>
-            </div>
-          </div>
+  const user = getCurrentUser() || "-";
+  const now = new Date();
+  const nowText = now.toLocaleString("ar-EG");
 
-          <div class="print-body">
-            ${contentEl.innerHTML}
-          </div>
-        </body>
-        </html>
-      `);
+  const summaryText = document.getElementById("agreedSummary")?.innerText || "";
 
-      printWindow.document.close();
-      printWindow.focus();
+  const printWindow = window.open("", "_blank", "width=1200,height=900");
+  if(!printWindow) return;
 
-      setTimeout(() => {
-        printWindow.print();
-      }, 500);
-    };
+  printWindow.document.write(`
+  <html dir="rtl">
+  <head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+
+  <style>
+
+  body{
+  font-family:Arial, Tahoma, sans-serif;
+  direction:rtl;
+  margin:0;
+  padding:0;
+  color:#17212b;
+  }
+
+  .print-header{
+  position:relative;
+  background:#fff;
+  border-bottom:2px solid #dbe2e8;
+  padding:18px 28px;
+  }
+
+  .header-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  }
+
+  .brand{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  }
+
+  .logo{
+  width:72px;
+  height:72px;
+  border:1px solid #dbe2e8;
+  border-radius:16px;
+  padding:6px;
+  background:#fff;
+  }
+
+  .logo img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  }
+
+  .title{
+  font-size:24px;
+  font-weight:bold;
+  color:#0f4c8a;
+  margin-bottom:4px;
+  }
+
+  .sub{
+  font-size:13px;
+  color:#6b7280;
+  }
+
+  .meta{
+  text-align:left;
+  font-size:13px;
+  color:#374151;
+  line-height:1.8;
+  }
+
+  .print-body{
+  padding:24px;
+  }
+
+  h2{
+  margin:0 0 18px;
+  color:#0f4c8a;
+  }
+
+  table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+  table-layout:auto;
+  }
+
+  th, td{
+  border:1px solid #dbe2e8;
+  padding:4px;
+  text-align:right;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  }
+
+  th{
+  background:#f8fafc;
+  color:#0f4c8a;
+  }
+
+  /* عمود الرقم */
+  th:first-child,
+  td:first-child{
+  width:40px;
+  text-align:center;
+  }
+
+  /* عمود الاسم */
+  th:nth-child(2),
+  td:nth-child(2){
+  white-space:nowrap;
+  }
+
+  /* عمود الملاحظات */
+  th:last-child,
+  td:last-child{
+  width:120px;
+  }
+
+  td.notesCell{
+  font-size:8px;
+  color:#777;
+  }
+
+  @page{
+  size:auto;
+  margin:20mm 10mm 15mm 10mm;
+  }
+
+  </style>
+  </head>
+
+  <body>
+
+  <div class="print-header">
+
+  <div class="header-inner">
+
+  <div class="brand">
+  <div class="logo">
+  <img src="logo.png">
+  </div>
+
+  <div>
+  <div class="title">العهد والتنمية</div>
+  <div class="sub">نظام إدارة الحملة الانتخابية - بيت ساحور</div>
+  <div class="sub">${title}</div>
+  </div>
+  </div>
+
+  <div class="meta">
+  <div><b>تمت الطباعة بواسطة:</b> ${user}</div>
+  <div><b>التاريخ والوقت:</b> ${nowText}</div>
+  </div>
+
+  </div>
+  </div>
+
+<div class="print-body">
+
+<div style="font-size:16px;font-weight:bold;margin-bottom:10px;color:#0f4c8a">
+عدد الناخبين: ${votersCount}
+</div>
+
+${contentEl.innerHTML}
+
+</div>
+
+  </body>
+  </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+
+  setTimeout(()=>{
+    printWindow.print();
+  },500);
+};
 
     async function init(){
       try{
@@ -2646,11 +2889,12 @@ setSyncStatus("تم التحديث");
         setSyncStatus("جار تحميل الفرز...");
         await loadAssignments();
      await loadFinalDecisions();
-        fillFilters();
-        buildDashboard();
-        buildDifferences();
-        buildAgreed();
-        searchVoters(1);
+fillFilters();
+fillAgreedFilters();   // أضف هذا السطر
+buildDashboard();
+buildDifferences();
+buildAgreed();
+searchVoters(1);
 
         setSyncStatus("متصل وجاهز");
       }catch(err){
@@ -2677,7 +2921,20 @@ setSyncStatus("تم التحديث");
     document.getElementById("familyFilter").addEventListener("change", () => searchVoters(1));
     document.getElementById("centerFilter").addEventListener("change", () => searchVoters(1));
     document.getElementById("statusFilter").addEventListener("change", () => searchVoters(1));
-  </script>
+  
+document
+.getElementById("agreedSearchInput")
+.addEventListener("input", buildAgreed);
+
+document
+.getElementById("agreedCenterFilter")
+.addEventListener("change", buildAgreed);
+
+document
+.getElementById("agreedListFilter")
+.addEventListener("change", buildAgreed);
+
+</script>
 
 <div id="agreementModal" style="
 display:none;
