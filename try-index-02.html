@@ -1,0 +1,2717 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>العهد والتنمية | نظام إدارة الحملة الانتخابية</title>
+
+  <style>
+    :root{
+      --green:#2f8f4e;
+      --green-dark:#21673a;
+      --green-soft:#e9f8ef;
+      --blue:#0f4c8a;
+      --blue-dark:#12345a;
+      --orange:#f2a51a;
+      --bg:#f3f5f7;
+      --card:#ffffff;
+      --text:#17212b;
+      --muted:#6b7280;
+      --border:#dbe2e8;
+      --danger:#c0392b;
+      --danger-soft:#fdebea;
+      --warn:#c58a00;
+      --warn-soft:#fff4db;
+      --ok:#1f9d55;
+      --ok-soft:#e7f7ee;
+      --info:#2563eb;
+      --info-soft:#e8f0ff;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Arial, Tahoma, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    img{max-width:100%}
+
+    .hidden{display:none !important}
+
+    .topbar{
+      background:linear-gradient(135deg, var(--blue), var(--blue-dark));
+      color:#fff;
+      padding:18px 22px;
+      box-shadow:var(--shadow);
+      position:sticky;
+      top:0;
+      z-index:100;
+    }
+
+    .topbar-inner{
+      max-width:1450px;
+      margin:auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+
+    .logo-box{
+      width:64px;
+      height:64px;
+      border-radius:18px;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      flex-shrink:0;
+      padding:6px;
+      box-shadow:0 8px 20px rgba(0,0,0,.15);
+    }
+
+    .logo-box img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+    }
+
+    .brand h1{
+      margin:0;
+      font-size:28px;
+      line-height:1.1;
+    }
+
+    .brand small{
+      display:block;
+      margin-top:6px;
+      color:#dce8f5;
+      font-size:13px;
+    }
+
+    .status-bar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .pill{
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.18);
+      color:#fff;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:13px;
+      white-space:nowrap;
+    }
+
+    .page{
+      max-width:1450px;
+      margin:18px auto;
+      padding:0 16px 35px;
+    }
+
+    .tabs{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+
+    .tab-btn{
+      border:none;
+      background:#fff;
+      padding:12px 18px;
+      border-radius:14px;
+      cursor:pointer;
+      box-shadow:var(--shadow);
+      font-weight:bold;
+      color:var(--blue);
+      transition:.2s ease;
+    }
+
+    .tab-btn:hover{
+      transform:translateY(-1px);
+    }
+
+    .tab-btn.active{
+      background:var(--green);
+      color:#fff;
+    }
+
+    .section{display:none}
+    .section.active{display:block}
+
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+      margin-bottom:16px;
+    }
+
+    .card-title{
+      margin:0 0 14px;
+      font-size:20px;
+      color:var(--blue);
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .section-title-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+
+    .section-title-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .section-logo{
+      width:48px;
+      height:48px;
+      background:#fff;
+      border-radius:14px;
+      overflow:hidden;
+      border:1px solid var(--border);
+      padding:4px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .section-logo img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+    }
+
+    .grid{
+      display:grid;
+      gap:16px;
+    }
+
+    .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+    .metric{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:18px;
+      min-height:120px;
+    }
+
+    .metric .label{
+      color:var(--muted);
+      font-size:14px;
+      margin-bottom:8px;
+    }
+
+    .metric .value{
+      font-size:34px;
+      font-weight:bold;
+      color:var(--text);
+    }
+
+    .metric small{
+      display:block;
+      margin-top:6px;
+      color:var(--muted);
+    }
+
+    .filters{
+      display:grid;
+      gap:12px;
+      grid-template-columns:2fr 1fr 1fr 1fr 1fr;
+      align-items:end;
+    }
+
+    .field label{
+      display:block;
+      margin-bottom:6px;
+      font-size:14px;
+      color:var(--muted);
+      font-weight:bold;
+    }
+
+    input, select, button, textarea{
+      font-family:inherit;
+    }
+
+    input, select, textarea{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px 12px;
+      background:#fff;
+      font-size:15px;
+      outline:none;
+      transition:border-color .2s ease, box-shadow .2s ease;
+    }
+
+    input:focus, select:focus, textarea:focus{
+      border-color:#8fb2d7;
+      box-shadow:0 0 0 4px rgba(37,99,235,.08);
+    }
+
+    textarea{
+      resize:vertical;
+      min-height:46px;
+    }
+
+    .btn{
+      border:none;
+      border-radius:12px;
+      padding:12px 16px;
+      cursor:pointer;
+      font-weight:bold;
+      font-size:15px;
+      transition:.2s ease;
+    }
+
+    .btn:hover{transform:translateY(-1px)}
+    .btn-primary{background:var(--green);color:#fff}
+    .btn-primary:hover{background:var(--green-dark)}
+    .btn-secondary{background:var(--blue);color:#fff}
+    .btn-secondary:hover{background:#0b3a69}
+    .btn-light{background:#eef3f7;color:var(--blue)}
+    .btn-danger{background:var(--danger);color:#fff}
+    .btn-sm{padding:10px 14px;font-size:14px}
+
+    .results-grid{
+      display:grid;
+      gap:14px;
+    }
+
+    .voter-card{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:var(--shadow);
+      transition:.2s ease;
+    }
+
+    .voter-card.user-saved{
+      background:linear-gradient(180deg,#f6fff8 0%, #ebfff1 100%);
+      border-color:#97ddb0;
+      box-shadow:0 10px 24px rgba(31,157,85,.12);
+    }
+
+    .voter-card:hover{
+      transform:translateY(-1px);
+    }
+
+    .voter-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .voter-name{
+      margin:0;
+      font-size:22px;
+      color:var(--text);
+    }
+
+    .voter-meta{
+      margin-top:8px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .badge{
+      display:inline-block;
+      padding:7px 10px;
+      border-radius:999px;
+      font-size:13px;
+      background:#eef3f7;
+      color:#213547;
+      border:1px solid var(--border);
+    }
+
+    .badge.ok{background:var(--ok-soft);color:#0d7a3d;border-color:#cdeedb}
+    .badge.warn{background:var(--warn-soft);color:#946200;border-color:#f4deaa}
+    .badge.danger{background:var(--danger-soft);color:#b42318;border-color:#f3c3bf}
+    .badge.info{background:var(--info-soft);color:#1e4fd1;border-color:#cad8ff}
+
+    .voter-actions{
+      display:grid;
+      gap:12px;
+      grid-template-columns:1.1fr 1.1fr .8fr 1.2fr auto;
+      margin-top:16px;
+      align-items:end;
+    }
+
+    .progress-wrap{
+      width:100%;
+      background:#e5e7eb;
+      border-radius:999px;
+      height:14px;
+      overflow:hidden;
+      margin-top:10px;
+    }
+
+    .progress-bar{
+      height:100%;
+      background:linear-gradient(90deg,var(--green),var(--orange));
+      width:0%;
+      transition:width .25s ease;
+    }
+
+    .table-wrap{
+      overflow:auto;
+      border:1px solid var(--border);
+      border-radius:16px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:15px;
+      background:#fff;
+    }
+
+    th, td{
+      padding:12px 10px;
+      border-bottom:1px solid var(--border);
+      text-align:right;
+      vertical-align:top;
+      white-space:nowrap;
+    }
+
+    th{
+      color:var(--blue);
+      background:#f8fafc;
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+
+    .two-col{
+      display:grid;
+      grid-template-columns:2fr 1fr;
+      gap:16px;
+    }
+
+    .empty{
+      text-align:center;
+      color:var(--muted);
+      padding:22px;
+    }
+
+    .small{
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .danger-box{
+      border:1px solid #f0c2bd;
+      background:#fff2f1;
+      color:#8c1d13;
+      border-radius:16px;
+      padding:14px;
+      margin-bottom:10px;
+    }
+
+    .success-box{
+      border:1px solid #bde8cf;
+      background:#edf9f2;
+      color:#17653e;
+      border-radius:16px;
+      padding:14px;
+      margin-bottom:10px;
+    }
+
+    .center-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .center-item{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+    }
+
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .summary-line{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:8px;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .pager{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:14px;
+      background:#fff;
+      border:1px solid var(--border);
+      padding:12px;
+      border-radius:16px;
+      box-shadow:var(--shadow);
+    }
+
+    .pager-controls{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .page-pill{
+      min-width:42px;
+      height:42px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:#fff;
+      color:var(--blue);
+      cursor:pointer;
+      font-weight:bold;
+      padding:0 12px;
+    }
+
+    .page-pill.active{
+      background:var(--green);
+      border-color:var(--green);
+      color:#fff;
+    }
+
+    .login-overlay{
+      position:fixed;
+      inset:0;
+      background:linear-gradient(135deg,#f7fafc,#edf3f8);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9998;
+      padding:20px;
+    }
+
+    .login-card{
+      background:white;
+      padding:32px;
+      border-radius:24px;
+      box-shadow:0 25px 60px rgba(15,76,138,.12);
+      width:100%;
+      max-width:420px;
+      border:1px solid #e8eef5;
+    }
+
+    .login-logo{
+      width:110px;
+      height:110px;
+      margin:0 auto 16px;
+      border-radius:26px;
+      background:#fff;
+      box-shadow:0 12px 30px rgba(0,0,0,.08);
+      border:1px solid #edf2f7;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:12px;
+    }
+
+    .login-logo img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+    }
+
+    .login-title{
+      text-align:center;
+      margin:0 0 6px;
+      color:var(--blue);
+      font-size:28px;
+    }
+
+    .login-subtitle{
+      text-align:center;
+      margin:0 0 24px;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .splash-screen{
+      position:fixed;
+      inset:0;
+      background:linear-gradient(135deg, #0d3e70 0%, #125595 55%, #1b7cc3 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      color:white;
+      z-index:99999;
+      overflow:hidden;
+    }
+
+    .splash-screen::before,
+    .splash-screen::after{
+      content:"";
+      position:absolute;
+      border-radius:50%;
+      background:rgba(255,255,255,.06);
+      filter:blur(2px);
+    }
+
+    .splash-screen::before{
+      width:340px;
+      height:340px;
+      top:-70px;
+      left:-80px;
+    }
+
+    .splash-screen::after{
+      width:420px;
+      height:420px;
+      bottom:-100px;
+      right:-80px;
+    }
+
+    .splash-logo-wrap{
+      width:180px;
+      height:180px;
+      border-radius:36px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.18);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      backdrop-filter:blur(6px);
+      box-shadow:0 20px 50px rgba(0,0,0,.18);
+      animation:logoPop .95s ease;
+      z-index:1;
+    }
+
+    .splash-logo-wrap img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      filter:drop-shadow(0 12px 26px rgba(0,0,0,.18));
+    }
+
+    .splash-title{
+      margin:22px 0 8px;
+      font-size:38px;
+      font-weight:bold;
+      z-index:1;
+      text-align:center;
+    }
+
+    .splash-subtitle{
+      font-size:18px;
+      opacity:.95;
+      z-index:1;
+      text-align:center;
+      margin-bottom:18px;
+    }
+
+    .splash-line{
+      width:140px;
+      height:4px;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(255,255,255,.2), #fff, rgba(255,255,255,.2));
+      z-index:1;
+    }
+
+    @keyframes logoPop{
+      0%{transform:scale(.82); opacity:0}
+      100%{transform:scale(1); opacity:1}
+    }
+
+    @media (max-width: 1200px){
+      .grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .filters{grid-template-columns:1fr 1fr 1fr}
+      .two-col{grid-template-columns:1fr}
+      .voter-actions{grid-template-columns:1fr 1fr 1fr}
+    }
+
+    @media (max-width: 820px){
+      .grid-4,.grid-3,.grid-2{grid-template-columns:1fr}
+      .filters{grid-template-columns:1fr}
+      .voter-actions{grid-template-columns:1fr}
+      .brand h1{font-size:22px}
+      .voter-name{font-size:18px}
+      .metric .value{font-size:26px}
+      .topbar-inner{align-items:flex-start}
+      .splash-title{font-size:30px}
+      .splash-subtitle{font-size:16px}
+      .login-card{padding:24px}
+    }
+
+    @media print{
+      body{
+        background:#fff !important;
+      }
+      .topbar, .tabs, .toolbar, .pager, .no-print, .btn, button{
+        display:none !important;
+      }
+      .card{
+        box-shadow:none !important;
+        border:none !important;
+        padding:0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Splash -->
+  <div id="splashScreen" class="splash-screen">
+    <div class="splash-logo-wrap">
+      <img src="logo.png" alt="الشعار">
+    </div>
+    <div class="splash-title">العهد والتنمية</div>
+    <div class="splash-subtitle">نظام إدارة الحملة الانتخابية - بيت ساحور</div>
+    <div class="splash-line"></div>
+  </div>
+
+  <!-- Login -->
+  <div id="loginScreen" class="login-overlay">
+    <div class="login-card">
+      <div class="login-logo">
+        <img src="logo.png" alt="الشعار">
+      </div>
+
+      <h2 class="login-title">العهد والتنمية</h2>
+      <p class="login-subtitle">نظام إدارة الحملة الانتخابية - تسجيل الدخول</p>
+
+      <div style="margin-bottom:12px">
+        <label>اسم المستخدم</label>
+        <input id="username" autocomplete="username" />
+      </div>
+
+      <div style="margin-bottom:16px">
+        <label>كلمة المرور</label>
+        <input type="password" id="password" autocomplete="current-password" />
+      </div>
+
+      <button onclick="login()" class="btn btn-primary" style="width:100%">
+        دخول
+      </button>
+
+      <div id="loginError" style="color:#c0392b;margin-top:12px;font-size:14px;text-align:center"></div>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo-box">
+          <img src="logo.png" alt="شعار" />
+        </div>
+        <div>
+          <h1>العهد والتنمية</h1>
+          <small>نظام إدارة الحملة الانتخابية - بيت ساحور</small>
+        </div>
+      </div>
+
+	<button onclick="refreshSystem()" class="refresh-top-btn">
+	🔄 تحديث
+	</button>      
+	<div class="status-bar">
+        <div class="pill" id="syncStatus">جار تحميل البيانات...</div>
+        <div class="pill" id="votersCountTop">0 ناخب</div>
+        <div class="pill" id="loggedInUserPill">-</div>
+        <button onclick="logout()" class="btn btn-danger btn-sm">خروج</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showSection('dashboard', this)">لوحة التحكم</button>
+      <button class="tab-btn" onclick="showSection('searchSection', this)">فرز الناخبين</button>
+      <button class="tab-btn" onclick="showSection('differencesSection', this)">الاختلافات</button>
+      <button class="tab-btn" onclick="showSection('agreedSection', this)">المتوافق عليهم</button>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="section active">
+      <div class="grid grid-4" id="dashboardCards"></div>
+
+      <div class="two-col">
+        <div>
+          <div class="card">
+            <h3 class="card-title">📊 مقارنة القوائم</h3>
+            <div id="listComparison"></div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">🏛 توزيع المقاعد المتوقع - سانت لوغي</h3>
+            <div id="thresholdBox" class="small"></div>
+            <div id="seatsResult"></div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">📉 كم صوت تحتاج للمقعد التالي</h3>
+            <div id="nextSeatNeeds"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <h3 class="card-title">📈 تقدم الفرز</h3>
+            <div id="progressText" class="small">0 / 0</div>
+            <div class="progress-wrap">
+              <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="summary-line" id="progressExtra"></div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">🚨 تنبيهات الحملة</h3>
+            <div id="alertsBox"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <h3 class="card-title">💪 أقوى 20 عائلة داعمة</h3>
+          <div id="strongFamilies"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">⚠ أضعف 20 عائلة</h3>
+          <div id="weakFamilies"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div id="searchSection" class="section">
+      <div class="card">
+        <div class="section-title-row">
+          <div class="section-title-left">
+            <div class="section-logo">
+              <img src="logo.png" alt="الشعار">
+            </div>
+            <h3 class="card-title" style="margin:0">فرز الناخبين</h3>
+          </div>
+        </div>
+
+        <div class="filters">
+          <div class="field">
+            <label>بحث بالاسم أو العائلة أو رقم الناخب أو المركز</label>
+            <input id="searchInput" placeholder="مثال: جورج / قمصية / 0537 / مدرسة بنات بيت ساحور الثانوية" />
+          </div>
+
+          <div class="field">
+            <label>العائلة</label>
+            <select id="familyFilter"></select>
+          </div>
+
+          <div class="field">
+            <label>المركز</label>
+            <select id="centerFilter"></select>
+          </div>
+
+          <div class="field">
+            <label>الحالة</label>
+            <select id="statusFilter"></select>
+          </div>
+
+          <div class="field">
+            <label>عدد النتائج</label>
+            <select id="limitFilter">
+              <option value="25">25</option>
+              <option value="50" selected>50</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="searchVoters(1)">بحث</button>
+          <button class="btn btn-light" onclick="resetFilters()">إعادة تعيين</button>
+	<button class="btn btn-secondary" onclick="printVoters()">🖨 طباعة</button>
+	<button class="btn btn-secondary" onclick="exportVotersExcel()">📊 Excel</button>
+        </div>
+
+        <div class="summary-line" id="searchSummary"></div>
+      </div>
+
+      <div id="messageBox"></div>
+      <div id="results" class="results-grid"></div>
+      <div id="paginationWrap"></div>
+    </div>
+
+    <!-- Differences -->
+    <div id="differencesSection" class="section">
+      <div class="card">
+        <div class="section-title-row">
+          <div class="section-title-left">
+            <div class="section-logo">
+              <img src="logo.png" alt="الشعار">
+            </div>
+            <h3 class="card-title" style="margin:0">⚠ الاختلافات بين الإدخالات</h3>
+          </div>
+
+          <div class="toolbar">
+            <button class="btn btn-secondary" onclick="printReport('تقرير الاختلافات', 'differencesTableWrap')">طباعة</button>
+            <button class="btn btn-light" onclick="exportTableToExcel('differencesTable', 'differences_report')">Excel</button>
+          </div>
+        </div>
+
+        <div class="summary-line" id="differencesSummary"></div>
+        <div id="differencesBox"></div>
+      </div>
+    </div>
+
+    <!-- Agreed -->
+    <div id="agreedSection" class="section">
+      <div class="card">
+        <div class="section-title-row">
+          <div class="section-title-left">
+            <div class="section-logo">
+              <img src="logo.png" alt="الشعار">
+            </div>
+            <h3 class="card-title" style="margin:0">✅ الأسماء المتوافق عليها</h3>
+          </div>
+
+          <div class="toolbar">
+            <button class="btn btn-secondary" onclick="printReport('تقرير الأسماء المتوافق عليها', 'agreedTableWrap')">طباعة</button>
+            <button class="btn btn-light" onclick="exportTableToExcel('agreedTable', 'agreed_voters_report')">Excel</button>
+          </div>
+        </div>
+
+        <div class="summary-line" id="agreedSummary"></div>
+        <div id="agreedBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      addDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD8y17wrQKTOtbm1GBtvZ4jtSTo38scFPc",
+      authDomain: "beit-sahour-election-202-6c568.firebaseapp.com",
+      projectId: "beit-sahour-election-202-6c568",
+      storageBucket: "beit-sahour-election-202-6c568.appspot.com",
+      messagingSenderId: "561591140818",
+      appId: "1:561591140818:web:f7f6e8720479c5d46fc80b"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const LISTS = {
+      "1 - ارض البشارة":[
+        "1 - عامر جورج الياس ابوسعده",
+        "2 - ايهاب جريس نقولا مصلح",
+        "3 - ماري يوسف جريس عوده",
+        "4 - شكري خليل جراسموس عوده",
+        "5 - الياس رحاب الياس الياس",
+        "6 - فادي جمال سابا ابوسعده",
+        "7 - شادي ماجد حنا عوده",
+        "8 - هديل رياض الياس ابوسعده",
+        "9 - بشير عيسى بشاره مصلح",
+        "10 - سائد جورج الياس ابوسعده",
+        "11 - مجدلين اميل فارس ابو سعده",
+        "12 - كارولين توفيق يوسف مصلح",
+        "13 - جوني جورج حنا عوده"
+      ],
+      "2 - شباب البلد":[
+        "1 - جريس جلال جريس قمصية",
+        "2 - جميل غسان جميل بنوره",
+        "3 - رنا خليل حنا الرشماوي",
+        "4 - عيسى خضر عيسى جبران",
+        "5 - ناصر صالح محمد غطاس",
+        "6 - محمد جمال احمد شعيبات",
+        "7 - ماهر نمر عيسى عوض",
+        "8 - سهى حنا انطون قمصية",
+        "9 - فادي جورج عيسى صبابا",
+        "10 - دينا امير حنا رشماوي",
+        "11 - رزان الياس عيسى عواد"
+      ],
+      "3 - بيت ساحور للجميع":[
+        "1 - الياس جورج سالم خير",
+        "2 - نضال عطالله موسى دانون",
+        "3 - فيرا انطون نخله ابو سعده",
+        "4 - مجدي الياس نصري جرايسه",
+        "5 - سالم عيسى نصري غريب",
+        "6 - سائد سعد جوده اسعيد",
+        "7 - رزان عوني عيسى خير",
+        "8 - داليا جهاد الياس خير",
+        "9 - عوض مجد عوض بردويل",
+        "10 - ملاك جورج خليل خير",
+        "11 - جورج الياس جورج خير",
+        "12 - بشير نبيل بشاره خير",
+        "13 - باسل الياس جورج خير"
+      ],
+      "4 - العهد والتنمية":[
+        "1 - ليث حازم نصري قمصية",
+        "2 - ايهاب حسين ذيب الفرارجة",
+        "3 - ايمان سامي جريس القسيس",
+        "4 - فادي يوسف جريس الطويل",
+        "5 - اياد سابا بنايوت خير",
+        "6 - اكرم فرح ميخائيل عياد",
+        "7 - تريز نصري حسن خير",
+        "8 - يعقوب جريس يعقوب قمصية",
+        "9 - لينا حازم نصري انضوني",
+        "10 - عدي معين فرح عياد",
+        "11 - ولاء ناجي اسكندر سعيد",
+        "12 - يوسف فادي يوسف الطويل",
+        "13 - ريناد جورج ميخائيل داود"
+      ],
+      "5 - البناء والتنمية":[
+        "1 - رائد نصري باسيل الاطرش",
+        "2 - كريم محمد علي الشعيبات",
+        "3 - ريتا بشاره جريس شوملي",
+        "4 - منجد عيسى جادالله الهواش",
+        "5 - لينا جمال عيسى القزحه",
+        "6 - جمال عيسى غريغوري ابو فرحه",
+        "7 - جوان رائد نصري الاطرش",
+        "8 - الياس جورج نقولا عواد",
+        "9 - جيانا رائد نصري الاطرش",
+        "10 - مجدي فؤاد باسيل الاطرش",
+        "11 - رامز شوقي فرح عوض",
+        "12 - يعقوب اياد يعقوب اليتيم",
+        "13 - بشار منجد عيسى الهواش"
+      ]
+    };
+
+    let voters = [];
+    let assignments = [];
+    let usersList = [];
+    let finalDecisions = [];
+
+    let latestGlobalMap = {};
+    let currentUserLatestMap = {};
+    let allAssignmentsByVoter = {};
+    let perVoterPerUserMap = {};
+
+    let currentSearchPage = 1;
+    let currentSearchResults = [];
+
+    function safeText(v){
+      return (v ?? "").toString().trim();
+    }
+
+    function setSyncStatus(text){
+      document.getElementById("syncStatus").textContent = text;
+    }
+
+	function getCurrentUser(){
+  	return safeText(window.currentUser || "");
+	}
+    function updateLoggedInPill(){
+      const user = getCurrentUser();
+      document.getElementById("loggedInUserPill").textContent = user ? `المستخدم: ${user}` : "غير مسجل";
+    }
+
+    function showMessage(type, text){
+      const box = document.getElementById("messageBox");
+      box.innerHTML = `<div class="${type === 'success' ? 'success-box' : 'danger-box'}">${text}</div>`;
+      setTimeout(() => {
+        box.innerHTML = "";
+      }, 2500);
+    }
+
+    window.showSection = function(sectionId, btn){
+      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+      document.getElementById(sectionId).classList.add("active");
+
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    };
+
+    window.login = async function(){
+      const username = safeText(document.getElementById("username").value);
+      const password = safeText(document.getElementById("password").value);
+
+      if(!username || !password){
+        document.getElementById("loginError").innerText = "يرجى إدخال اسم المستخدم وكلمة المرور";
+        return;
+      }
+
+      try{
+        const snapshot = await getDocs(collection(db,"users"));
+        let found = false;
+        let foundName = "";
+
+        snapshot.forEach(doc => {
+          const user = doc.data();
+          if(
+            safeText(user.username) === username &&
+            safeText(user.password) === password &&
+            user.active === true
+          ){
+            found = true;
+            foundName = safeText(user.name) || username;
+          }
+        });
+
+        if(found){
+	  window.currentUser = foundName;
+          document.getElementById("loginScreen").style.display = "none";
+          document.getElementById("loginError").innerText = "";
+          updateLoggedInPill();
+          rebuildIndexes();
+          searchVoters(currentSearchPage);
+        }else{
+          document.getElementById("loginError").innerText = "اسم المستخدم أو كلمة المرور غير صحيح";
+        }
+      }catch(err){
+        console.error(err);
+        document.getElementById("loginError").innerText = "حدث خطأ أثناء تسجيل الدخول";
+      }
+    };
+
+    window.logout = function(){
+      localStorage.removeItem("electionUser");
+      document.getElementById("loginScreen").style.display = "flex";
+      updateLoggedInPill();
+      document.getElementById("password").value = "";
+    };
+
+    function sortArabicText(a, b){
+      return safeText(a).localeCompare(safeText(b), "ar");
+    }
+
+    async function loadVoters(){
+      const querySnapshot = await getDocs(collection(db, "voters"));
+      const arr = [];
+
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        arr.push({
+          id: docSnap.id,
+          name: safeText(data.name),
+          family: safeText(data.family),
+          center: safeText(data.center),
+          voterNumber: safeText(data.voterNumber),
+          phone: safeText(data.phone || data.mobile || data.tel || ""),
+          note: safeText(data.note || "")
+        });
+      });
+
+      voters = arr.sort((a,b) => {
+        const familyCompare = sortArabicText(a.family, b.family);
+        if (familyCompare !== 0) return familyCompare;
+        return sortArabicText(a.name, b.name);
+      });
+
+      document.getElementById("votersCountTop").textContent = `${voters.length} ناخب`;
+    }
+
+    async function loadAssignments(){
+      const querySnapshot = await getDocs(collection(db, "assignments"));
+      const arr = [];
+
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        arr.push({
+          id: docSnap.id,
+          voterNumber: safeText(data.voterNumber),
+          name: safeText(data.name),
+          family: safeText(data.family),
+          center: safeText(data.center),
+          phone: safeText(data.phone || ""),
+          list: safeText(data.list),
+          candidate: safeText(data.candidate),
+          status: safeText(data.status),
+          note: safeText(data.note),
+          user: safeText(data.user),
+          savedAtMs: Number(data.savedAtMs || 0)
+        });
+      });
+
+      assignments = arr.sort((a,b) => a.savedAtMs - b.savedAtMs);
+      usersList = [...new Set(assignments.map(a => a.user).filter(Boolean))].sort(sortArabicText);
+      rebuildIndexes();
+    }
+
+async function loadFinalDecisions(){
+
+const snapshot = await getDocs(collection(db,"final_decisions"));
+
+const arr = [];
+
+snapshot.forEach(doc=>{
+arr.push(doc.data());
+});
+
+finalDecisions = arr;
+
+}
+
+    function rebuildIndexes(){
+      latestGlobalMap = {};
+      currentUserLatestMap = {};
+      allAssignmentsByVoter = {};
+      perVoterPerUserMap = {};
+
+      const currentUser = getCurrentUser();
+
+      assignments.forEach(a => {
+        if(!a.voterNumber) return;
+
+        if(!allAssignmentsByVoter[a.voterNumber]){
+          allAssignmentsByVoter[a.voterNumber] = [];
+        }
+        allAssignmentsByVoter[a.voterNumber].push(a);
+
+        if(!perVoterPerUserMap[a.voterNumber]){
+          perVoterPerUserMap[a.voterNumber] = {};
+        }
+
+        if(!perVoterPerUserMap[a.voterNumber][a.user] || a.savedAtMs > perVoterPerUserMap[a.voterNumber][a.user].savedAtMs){
+          perVoterPerUserMap[a.voterNumber][a.user] = a;
+        }
+
+        if(!latestGlobalMap[a.voterNumber] || a.savedAtMs > latestGlobalMap[a.voterNumber].savedAtMs){
+          latestGlobalMap[a.voterNumber] = a;
+        }
+
+        if(currentUser && a.user === currentUser){
+          if(!currentUserLatestMap[a.voterNumber] || a.savedAtMs > currentUserLatestMap[a.voterNumber].savedAtMs){
+            currentUserLatestMap[a.voterNumber] = a;
+          }
+        }
+      });
+
+      updateLoggedInPill();
+    }
+
+    function getLatestAssignments(){
+      return Object.values(latestGlobalMap);
+    }
+
+    function fillFilters(){
+      const familySel = document.getElementById("familyFilter");
+      const centerSel = document.getElementById("centerFilter");
+      const statusSel = document.getElementById("statusFilter");
+
+      const families = ["الكل", ...new Set(voters.map(v => v.family).filter(Boolean).sort(sortArabicText))];
+      const centers = ["الكل", ...new Set(voters.map(v => v.center).filter(Boolean).sort(sortArabicText))];
+      const statuses = ["الكل", "مؤكد", "مرجّح", "متردد", "غير مفروز"];
+
+      familySel.innerHTML = families.map(f => `<option value="${f}">${f}</option>`).join("");
+      centerSel.innerHTML = centers.map(c => `<option value="${c}">${c}</option>`).join("");
+      statusSel.innerHTML = statuses.map(s => `<option value="${s}">${s}</option>`).join("");
+    }
+
+    function candidateOptionsHtml(selectedList, selectedCandidate){
+      const candidates = LISTS[selectedList] || [];
+      return `
+        <option value="">اختر المرشح</option>
+        ${candidates.map(c => `<option value="${c}" ${selectedCandidate === c ? "selected" : ""}>${c}</option>`).join("")}
+      `;
+    }
+
+    window.onListChange = function(voterNumber){
+      const listValue = document.getElementById(`list-${voterNumber}`).value;
+      const candidateSelect = document.getElementById(`candidate-${voterNumber}`);
+      candidateSelect.innerHTML = candidateOptionsHtml(listValue, "");
+    };
+
+    window.resetFilters = function(){
+      document.getElementById("searchInput").value = "";
+      document.getElementById("familyFilter").value = "الكل";
+      document.getElementById("centerFilter").value = "الكل";
+      document.getElementById("statusFilter").value = "الكل";
+      document.getElementById("limitFilter").value = "50";
+      currentSearchPage = 1;
+      searchVoters(1);
+    };
+
+    function formatDateTime(ms){
+      if(!ms) return "-";
+      const d = new Date(ms);
+      return d.toLocaleString("ar-EG");
+    }
+
+function filterVoters(){
+
+const q = safeText(document.getElementById("searchInput").value).toLowerCase().trim();
+const familyFilter = document.getElementById("familyFilter").value;
+const centerFilter = document.getElementById("centerFilter").value;
+const statusFilter = document.getElementById("statusFilter").value;
+
+return voters.filter(v => {
+
+const latest = latestGlobalMap[v.voterNumber] || null;
+
+const name = safeText(v.name).toLowerCase();
+const family = safeText(v.family).toLowerCase();
+const number = safeText(v.voterNumber).toLowerCase();
+const center = safeText(v.center).toLowerCase();
+const phone = safeText(v.phone).toLowerCase();
+
+/* البحث فقط في بيانات الناخب */
+
+const matchSearch =
+!q ||
+name.includes(q) ||
+family.includes(q) ||
+number.includes(q) ||
+center.includes(q) ||
+phone.includes(q);
+
+const matchFamily =
+familyFilter === "الكل" || v.family === familyFilter;
+
+const matchCenter =
+centerFilter === "الكل" || v.center === centerFilter;
+
+let voterStatus = latest?.status || "غير مفروز";
+
+const matchStatus =
+statusFilter === "الكل" || voterStatus === statusFilter;
+
+return matchSearch && matchFamily && matchCenter && matchStatus;
+
+});
+
+}
+
+    function renderPagination(totalItems, currentPage, pageSize){
+      const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+      const wrap = document.getElementById("paginationWrap");
+
+      if(totalItems === 0){
+        wrap.innerHTML = "";
+        return;
+      }
+
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + 4);
+      if(endPage - startPage < 4){
+        startPage = Math.max(1, endPage - 4);
+      }
+
+      let pagesHtml = "";
+      for(let p = startPage; p <= endPage; p++){
+        pagesHtml += `<button class="page-pill ${p === currentPage ? 'active' : ''}" onclick="searchVoters(${p})">${p}</button>`;
+      }
+
+      wrap.innerHTML = `
+        <div class="pager">
+          <div class="small">الصفحة ${currentPage} من ${totalPages} — مجموع النتائج: ${totalItems}</div>
+          <div class="pager-controls">
+            <button class="page-pill" ${currentPage <= 1 ? "disabled" : ""} onclick="searchVoters(${currentPage - 1})">السابق</button>
+            ${pagesHtml}
+            <button class="page-pill" ${currentPage >= totalPages ? "disabled" : ""} onclick="searchVoters(${currentPage + 1})">التالي</button>
+          </div>
+        </div>
+      `;
+    }
+
+    window.searchVoters = function(page = 1){
+      currentSearchPage = page;
+
+      const filtered = filterVoters();
+      currentSearchResults = filtered;
+
+      const pageSize = Number(document.getElementById("limitFilter").value || 50);
+      const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+      if(currentSearchPage > totalPages) currentSearchPage = totalPages;
+
+      const startIndex = (currentSearchPage - 1) * pageSize;
+      const pageRows = filtered.slice(startIndex, startIndex + pageSize);
+
+      document.getElementById("searchSummary").innerHTML = `
+        <span>مجموع النتائج: <b>${filtered.length}</b></span>
+        <span>—</span>
+        <span>المعروض الآن: <b>${pageRows.length}</b></span>
+      `;
+
+      let html = "";
+
+      pageRows.forEach(v => {
+        const latestGlobal = latestGlobalMap[v.voterNumber] || null;
+        const myLatest = currentUserLatestMap[v.voterNumber] || null;
+
+        const selectedList = latestGlobal?.list || "";
+        const selectedCandidate = latestGlobal?.candidate || "";
+        const selectedStatus = latestGlobal?.status || "مؤكد";
+        const selectedNote = latestGlobal?.note || v.note || "";
+
+        const isUserSaved = !!myLatest;
+
+        html += `
+          <div class="voter-card ${isUserSaved ? 'user-saved' : ''}">
+            <div class="voter-head">
+              <div>
+                <h3 class="voter-name">${v.name || "-"}</h3>
+                <div class="voter-meta">
+                  <span class="badge">العائلة: ${v.family || "-"}</span>
+                  <span class="badge">رقم الناخب: ${v.voterNumber || "-"}</span>
+                  <span class="badge">المركز: ${v.center || "-"}</span>
+                  ${v.phone ? `<span class="badge">الهاتف: ${v.phone}</span>` : ""}
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                ${latestGlobal
+                  ? `<span class="badge info">آخر حفظ: ${latestGlobal.list || "-"} | ${latestGlobal.status || "-"} | بواسطة ${latestGlobal.user || "-"}</span>`
+                  : `<span class="badge warn">غير مفروز بعد</span>`
+                }
+                ${myLatest ? `<span class="badge ok">تم الفرز من قبلك</span>` : ``}
+              </div>
+            </div>
+
+            <div class="voter-actions">
+              <div class="field">
+                <label>القائمة</label>
+                <select id="list-${v.voterNumber}" onchange="onListChange('${v.voterNumber}')">
+                  <option value="">اختر القائمة</option>
+                  ${Object.keys(LISTS).map(listName => `<option value="${listName}" ${selectedList === listName ? "selected" : ""}>${listName}</option>`).join("")}
+                </select>
+              </div>
+
+              <div class="field">
+                <label>المرشح</label>
+                <select id="candidate-${v.voterNumber}">
+                  ${candidateOptionsHtml(selectedList, selectedCandidate)}
+                </select>
+              </div>
+
+              <div class="field">
+                <label>الحالة</label>
+                <select id="status-${v.voterNumber}">
+                  <option value="مؤكد" ${selectedStatus === "مؤكد" ? "selected" : ""}>مؤكد</option>
+                  <option value="مرجّح" ${selectedStatus === "مرجّح" ? "selected" : ""}>مرجّح</option>
+                  <option value="متردد" ${selectedStatus === "متردد" ? "selected" : ""}>متردد</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>ملاحظة</label>
+                <textarea id="note-${v.voterNumber}" placeholder="أضف ملاحظة إن وجدت">${selectedNote}</textarea>
+              </div>
+
+              <div class="field">
+                <label>&nbsp;</label>
+                <button class="btn btn-primary" onclick="saveVote('${v.voterNumber}')">حفظ</button>
+              </div>
+            </div>
+
+            ${latestGlobal?.savedAtMs ? `<div class="small" style="margin-top:10px;">آخر تحديث: ${formatDateTime(latestGlobal.savedAtMs)}</div>` : ""}
+          </div>
+        `;
+      });
+
+      document.getElementById("results").innerHTML = html || `<div class="card empty">لا توجد نتائج</div>`;
+      renderPagination(filtered.length, currentSearchPage, pageSize);
+    };
+
+
+let currentAgreementVoter = null;
+
+    window.saveVote = async function(voterNumber){
+      try{
+        const voter = voters.find(v => v.voterNumber === voterNumber);
+        const list = safeText(document.getElementById(`list-${voterNumber}`).value);
+        const candidate = safeText(document.getElementById(`candidate-${voterNumber}`).value);
+        const status = safeText(document.getElementById(`status-${voterNumber}`).value);
+        const note = safeText(document.getElementById(`note-${voterNumber}`).value);
+
+        const user = getCurrentUser();
+
+        if(!user){
+          showMessage("error", "يرجى تسجيل الدخول أولاً");
+          return;
+        }
+
+        if(!list){
+          showMessage("error", "يرجى اختيار القائمة");
+          return;
+        }
+
+        await addDoc(collection(db, "assignments"), {
+          voterNumber,
+          name: voter?.name || "",
+          family: voter?.family || "",
+          center: voter?.center || "",
+          phone: voter?.phone || "",
+          list,
+          candidate,
+          status,
+          note,
+          user,
+          savedAtMs: Date.now()
+        });
+
+        await loadAssignments();
+        buildDashboard();
+        buildDifferences();
+        buildAgreed();
+        searchVoters(currentSearchPage);
+        showMessage("success", "تم حفظ الفرز بنجاح");
+
+      }catch(err){
+        console.error(err);
+        showMessage("error", "فشل الحفظ");
+      }
+    };
+
+window.printVoters = function(){
+
+const rows = currentSearchResults || [];
+
+const user = getCurrentUser() || "غير معروف";
+
+const now = new Date();
+const date = now.toLocaleDateString("ar-EG");
+const time = now.toLocaleTimeString("ar-EG");
+
+let html = `
+<html>
+<head>
+
+<title>تقرير الناخبين</title>
+
+<style>
+
+body{
+font-family:Arial,Tahoma;
+direction:rtl;
+padding:40px;
+}
+
+.header{
+display:flex;
+align-items:center;
+justify-content:space-between;
+margin-bottom:30px;
+}
+
+.logo{
+height:80px;
+}
+
+.title{
+text-align:center;
+font-size:26px;
+font-weight:bold;
+margin-bottom:10px;
+}
+
+.info{
+margin-bottom:20px;
+font-size:14px;
+color:#555;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+border:1px solid #ccc;
+padding:8px;
+text-align:right;
+}
+
+th{
+background:#f3f5f7;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+
+<img src="logo.png" class="logo">
+
+<div>
+<div class="title">العهد والتنمية</div>
+<div class="info">تقرير فرز الناخبين</div>
+</div>
+
+</div>
+
+<div class="info">
+تمت الطباعة بواسطة: <b>${user}</b><br>
+التاريخ: <b>${date}</b> — الساعة: <b>${time}</b><br>
+عدد الناخبين في التقرير: <b>${rows.length}</b>
+</div>
+
+<table>
+
+<thead>
+<tr>
+<th>#</th>
+<th>الاسم</th>
+<th>العائلة</th>
+<th>رقم الناخب</th>
+<th>المركز</th>
+</tr>
+</thead>
+
+<tbody>
+`;
+
+rows.forEach((v,i)=>{
+
+html += `
+<tr>
+<td>${i+1}</td>
+<td>${v.name || ""}</td>
+<td>${v.family || ""}</td>
+<td>${v.voterNumber || ""}</td>
+<td>${v.center || ""}</td>
+</tr>
+`;
+
+});
+
+html += `
+</tbody>
+</table>
+
+</body>
+</html>
+`;
+
+const win = window.open("","PRINT");
+
+win.document.write(html);
+win.document.close();
+
+win.focus();
+win.print();
+
+}
+
+window.exportVotersExcel = function(){
+
+const rows = currentSearchResults || [];
+const userVotes = currentUserLatestMap || {};
+
+const user = getCurrentUser() || "غير معروف";
+
+const now = new Date();
+const date = now.toLocaleDateString("ar-EG");
+const time = now.toLocaleTimeString("ar-EG");
+
+let tableRows = "";
+
+rows.forEach((v, i) => {
+
+const myVote = userVotes[v.voterNumber] || {};
+
+tableRows += `
+<tr>
+<td class="col-num">${i + 1}</td>
+<td class="col-name">${v.name || ""}</td>
+<td class="col-family">${v.family || ""}</td>
+<td class="col-voter">${v.voterNumber || ""}</td>
+<td class="col-center">${v.center || ""}</td>
+<td class="col-list">${myVote.list || ""}</td>
+<td class="col-candidate">${myVote.candidate || ""}</td>
+<td class="col-status">${myVote.status || ""}</td>
+</tr>
+`;
+
+});
+
+const html = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:x="urn:schemas-microsoft-com:office:excel"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+
+<meta charset="UTF-8">
+
+<style>
+
+body{
+font-family: Arial, Tahoma, sans-serif;
+direction: rtl;
+text-align: right;
+padding: 20px;
+}
+
+.title{
+font-size: 22px;
+font-weight: bold;
+margin-bottom: 8px;
+}
+
+.sub{
+font-size: 14px;
+margin-bottom: 6px;
+}
+
+table{
+border-collapse: collapse;
+width: 100%;
+direction: rtl;
+table-layout: fixed;
+}
+
+th, td{
+border: 1px solid #999;
+padding: 6px;
+text-align: right;
+white-space: nowrap;
+font-size: 13px;
+}
+
+th{
+background: #f3f5f7;
+font-weight: bold;
+}
+
+/* حجم الأعمدة */
+
+.col-num{width:40px;text-align:center}
+.col-name{width:160px}
+.col-family{width:140px}
+.col-voter{width:90px;text-align:center}
+.col-center{width:160px}
+.col-list{width:150px}
+.col-candidate{width:170px}
+.col-status{width:80px;text-align:center}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="title">العهد والتنمية - تقرير فرز الناخبين</div>
+
+<div class="sub">تم التصدير بواسطة: <b>${user}</b></div>
+<div class="sub">التاريخ: <b>${date}</b> — الساعة: <b>${time}</b></div>
+<div class="sub">عدد الناخبين: <b>${rows.length}</b></div>
+
+<table>
+
+<thead>
+<tr>
+<th class="col-num">#</th>
+<th class="col-name">الاسم</th>
+<th class="col-family">العائلة</th>
+<th class="col-voter">رقم الناخب</th>
+<th class="col-center">المركز</th>
+<th class="col-list">القائمة</th>
+<th class="col-candidate">المرشح</th>
+<th class="col-status">الحالة</th>
+</tr>
+</thead>
+
+<tbody>
+${tableRows}
+</tbody>
+
+</table>
+
+</body>
+</html>
+`;
+
+const blob = new Blob([html], {
+type: "application/vnd.ms-excel;charset=utf-8;"
+});
+
+const link = document.createElement("a");
+
+link.href = URL.createObjectURL(blob);
+
+link.download = "تقرير_فرز_الناخبين.xls";
+
+document.body.appendChild(link);
+
+link.click();
+
+document.body.removeChild(link);
+
+};
+
+
+window.openAgreement = function(voterNumber){
+
+   currentAgreementVoter = voterNumber;
+
+   document.getElementById("agreementModal").style.display = "flex";
+
+   const listSelect = document.getElementById("finalList");
+
+   listSelect.innerHTML = `
+   <option value="">اختر القائمة</option>
+   ${Object.keys(LISTS).map(l=>`<option value="${l}">${l}</option>`).join("")}
+   `;
+
+   document.getElementById("finalCandidate").innerHTML = "";
+
+};
+
+document.getElementById("finalList").addEventListener("change",function(){
+
+const list = this.value;
+
+const candidates = LISTS[list] || [];
+
+document.getElementById("finalCandidate").innerHTML =
+candidates.map(c=>`<option value="${c}">${c}</option>`).join("");
+
+});
+
+window.closeAgreement = function(){
+
+document.getElementById("agreementModal").style.display="none";
+
+}
+
+window.saveAgreement = async function(){
+
+const list = document.getElementById("finalList").value;
+const candidate = document.getElementById("finalCandidate").value;
+
+if(!list){
+alert("اختر القائمة");
+return;
+}
+
+const voter = voters.find(v=>v.voterNumber === currentAgreementVoter);
+
+const users = assignments
+.filter(a=>a.voterNumber===currentAgreementVoter)
+.map(a=>a.user);
+
+await addDoc(collection(db,"final_decisions"),{
+
+voterNumber: currentAgreementVoter,
+name: voter?.name || "",
+family: voter?.family || "",
+center: voter?.center || "",
+list,
+candidate,
+
+notes: `تم حل اختلاف بين ${[...new Set(users)].join(" و ")}`,
+
+savedAtMs: Date.now()
+
+});
+
+closeAgreement();
+
+await loadAssignments();
+
+buildDifferences();
+buildAgreed();
+
+alert("تم اعتماد القرار");
+
+}
+
+    function calculateListBuckets(){
+      const latest = getLatestAssignments();
+      const buckets = {};
+
+      Object.keys(LISTS).forEach(listName => {
+        buckets[listName] = { confirmed:0, likely:0, undecided:0, prediction:0 };
+      });
+
+      latest.forEach(a => {
+        if (!buckets[a.list]) {
+          buckets[a.list] = { confirmed:0, likely:0, undecided:0, prediction:0 };
+        }
+
+        if (a.status === "مؤكد") buckets[a.list].confirmed++;
+        if (a.status === "مرجّح") buckets[a.list].likely++;
+        if (a.status === "متردد") buckets[a.list].undecided++;
+      });
+
+      Object.keys(buckets).forEach(listName => {
+        const b = buckets[listName];
+        b.prediction = Math.round((b.confirmed * 1) + (b.likely * 0.6) + (b.undecided * 0.3));
+      });
+
+      return buckets;
+    }
+
+    function calculateSeats(predictions, seats = 13){
+      const totalVotes = predictions.reduce((sum, l) => sum + l.prediction, 0);
+      const threshold = totalVotes * 0.05;
+      const validLists = predictions.filter(l => l.prediction >= threshold);
+
+      const divisors = [1,3,5,7,9,11,13,15,17,19,21,23,25];
+      let table = [];
+
+      validLists.forEach(list => {
+        divisors.forEach(d => {
+          table.push({
+            list: list.list,
+            value: list.prediction / d
+          });
+        });
+      });
+
+      table.sort((a,b) => b.value - a.value);
+      const winners = table.slice(0, seats);
+
+      const result = {};
+      winners.forEach(w => {
+        if (!result[w.list]) result[w.list] = 0;
+        result[w.list]++;
+      });
+
+      return { result, threshold, validLists, winners, table };
+    }
+
+    function votesNeededForNextSeat(predictions, seatsResult, cutoffValue){
+      const out = [];
+
+      predictions.forEach(item => {
+        const currentSeats = seatsResult[item.list] || 0;
+        const nextDivisor = (currentSeats * 2) + 1;
+        const currentQuotient = nextDivisor > 0 ? item.prediction / nextDivisor : item.prediction;
+        const needed = Math.max(0, Math.ceil((cutoffValue - currentQuotient) * nextDivisor));
+
+        out.push({
+          list: item.list,
+          needed
+        });
+      });
+
+      return out.sort((a,b) => a.needed - b.needed);
+    }
+
+    function buildDashboard(){
+      const latest = getLatestAssignments();
+      const buckets = calculateListBuckets();
+
+      const total = voters.length;
+      const filled = latest.length;
+      const confirmed = latest.filter(a => a.status === "مؤكد").length;
+      const likely = latest.filter(a => a.status === "مرجّح").length;
+      const undecided = latest.filter(a => a.status === "متردد").length;
+      const unfilled = Math.max(0, total - filled);
+      const progress = total ? Math.round((filled / total) * 100) : 0;
+
+      const differencesCount = buildDifferencesData().length;
+      const agreedCount = buildAgreedData().length;
+
+      document.getElementById("dashboardCards").innerHTML = `
+        <div class="metric">
+          <div class="label">المؤكد</div>
+          <div class="value">${confirmed}</div>
+          <small>أعلى درجة دعم</small>
+        </div>
+
+        <div class="metric">
+          <div class="label">المرجّح</div>
+          <div class="value">${likely}</div>
+          <small>قابل للتثبيت</small>
+        </div>
+
+        <div class="metric">
+          <div class="label">المتردد</div>
+          <div class="value">${undecided}</div>
+          <small>يحتاج متابعة</small>
+        </div>
+
+        <div class="metric">
+          <div class="label">غير المفروز</div>
+          <div class="value">${unfilled}</div>
+          <small>من أصل ${total} ناخب</small>
+        </div>
+
+        <div class="metric">
+          <div class="label">المفروز</div>
+          <div class="value">${filled}</div>
+          <small>تم إدخاله حتى الآن</small>
+        </div>
+
+        <div class="metric">
+          <div class="label">الاختلافات</div>
+          <div class="value">${differencesCount}</div>
+          <small>ناخب عليهم اختلاف</small>
+        </div>
+
+        <div class="metric">
+          <div class="label">المتوافق عليهم</div>
+          <div class="value">${agreedCount}</div>
+          <small>ناخب عليهم اتفاق</small>
+        </div>
+
+        <div class="metric">
+          <div class="label">نسبة الإنجاز</div>
+          <div class="value">${progress}%</div>
+          <small>${filled} / ${total}</small>
+        </div>
+      `;
+
+      document.getElementById("progressText").textContent = `${filled} / ${total} (${progress}%)`;
+      document.getElementById("progressBar").style.width = `${progress}%`;
+      document.getElementById("progressExtra").innerHTML = `
+        <span>المستخدمون المشاركون: <b>${usersList.length}</b></span>
+        <span>—</span>
+        <span>الاختلافات: <b>${differencesCount}</b></span>
+        <span>—</span>
+        <span>المتوافق عليهم: <b>${agreedCount}</b></span>
+      `;
+
+      const predictionRows = Object.keys(buckets).map(list => ({
+        list,
+        ...buckets[list]
+      })).sort((a,b) => b.prediction - a.prediction);
+
+      document.getElementById("listComparison").innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>القائمة</th>
+                <th>مؤكد</th>
+                <th>مرجّح</th>
+                <th>متردد</th>
+                <th>التوقع</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${predictionRows.map(r => `
+                <tr>
+                  <td>${r.list}</td>
+                  <td>${r.confirmed}</td>
+                  <td>${r.likely}</td>
+                  <td>${r.undecided}</td>
+                  <td><b>${r.prediction}</b></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      const seatsData = calculateSeats(predictionRows, 13);
+      const cutoff = seatsData.winners.length ? seatsData.winners[seatsData.winners.length - 1].value : 0;
+
+      document.getElementById("thresholdBox").innerHTML = `
+        <div class="small">
+          نسبة الحسم 5% = <b>${Math.round(seatsData.threshold)}</b> صوت متوقع
+        </div>
+      `;
+
+      document.getElementById("seatsResult").innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>القائمة</th>
+                <th>المقاعد المتوقعة</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${predictionRows.map(r => `
+                <tr>
+                  <td>${r.list}</td>
+                  <td><b>${seatsData.result[r.list] || 0}</b></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      const nextSeat = votesNeededForNextSeat(predictionRows, seatsData.result, cutoff);
+
+      document.getElementById("nextSeatNeeds").innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>القائمة</th>
+                <th>الأصوات المطلوبة للمقعد التالي</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${nextSeat.map(r => `
+                <tr>
+                  <td>${r.list}</td>
+                  <td>${r.needed}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      buildAlerts(latest);
+      buildFamilyStrength();
+    }
+
+    function buildAlerts(latest){
+      const familyMap = {};
+
+      latest.forEach(a => {
+        const family = a.family || "غير معروف";
+        if (!familyMap[family]) familyMap[family] = { confirmed:0, likely:0, undecided:0, total:0 };
+        familyMap[family].total++;
+        if (a.status === "مؤكد") familyMap[family].confirmed++;
+        if (a.status === "مرجّح") familyMap[family].likely++;
+        if (a.status === "متردد") familyMap[family].undecided++;
+      });
+
+      const alerts = Object.entries(familyMap)
+        .map(([family, data]) => {
+          const score = (data.confirmed * 3) + (data.likely * 2) + (data.undecided * 1);
+          const avg = data.total ? score / data.total : 0;
+          return { family, avg, ...data };
+        })
+        .filter(x => x.total >= 3 && x.avg < 2.1)
+        .sort((a,b) => a.avg - b.avg)
+        .slice(0, 8);
+
+      const box = document.getElementById("alertsBox");
+
+      if (!alerts.length){
+        box.innerHTML = `<div class="success-box">لا توجد عائلات ضعيفة واضحة حالياً.</div>`;
+        return;
+      }
+
+      box.innerHTML = alerts.map(a => `
+        <div class="danger-box">
+          ⚠ <b>${a.family}</b><br>
+          مؤكد: ${a.confirmed} | مرجّح: ${a.likely} | متردد: ${a.undecided}
+        </div>
+      `).join("");
+    }
+
+    function buildFamilyTable(rows){
+      if(!rows.length){
+        return `<div class="empty">لا توجد بيانات بعد</div>`;
+      }
+
+      return `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>العائلة</th>
+                <th>مؤكد</th>
+                <th>مرجّح</th>
+                <th>متردد</th>
+                <th>المعدل</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => `
+                <tr>
+                  <td>${r.family}</td>
+                  <td>${r.confirmed}</td>
+                  <td>${r.likely}</td>
+                  <td>${r.undecided}</td>
+                  <td><b>${r.avg.toFixed(2)}</b></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function buildFamilyStrength(){
+      const latest = getLatestAssignments();
+      const families = {};
+
+      latest.forEach(a => {
+        if(!a.family) return;
+
+        if(!families[a.family]){
+          families[a.family] = {
+            confirmed:0,
+            likely:0,
+            undecided:0,
+            total:0,
+            score:0
+          };
+        }
+
+        families[a.family].total++;
+
+        if(a.status === "مؤكد"){
+          families[a.family].confirmed++;
+          families[a.family].score += 3;
+        }
+        if(a.status === "مرجّح"){
+          families[a.family].likely++;
+          families[a.family].score += 2;
+        }
+        if(a.status === "متردد"){
+          families[a.family].undecided++;
+          families[a.family].score += 1;
+        }
+      });
+
+      const rows = Object.entries(families).map(([family, data]) => ({
+        family,
+        avg: data.total ? data.score / data.total : 0,
+        ...data
+      }));
+
+      const strongest = [...rows].sort((a,b) => b.avg - a.avg).slice(0,20);
+      const weakest = [...rows].sort((a,b) => a.avg - b.avg).slice(0,20);
+
+      document.getElementById("strongFamilies").innerHTML = buildFamilyTable(strongest);
+      document.getElementById("weakFamilies").innerHTML = buildFamilyTable(weakest);
+    }
+
+function buildDifferencesData(){
+
+const rows = [];
+const seen = new Set(); // لمنع التكرار
+
+Object.keys(perVoterPerUserMap).forEach(voterNumber => {
+
+if(!voterNumber) return;
+
+/* إذا كان له قرار نهائي لا يظهر في الاختلافات */
+
+if(finalDecisions.some(d => d.voterNumber === voterNumber)){
+return;
+}
+
+/* منع التكرار */
+
+if(seen.has(voterNumber)) return;
+seen.add(voterNumber);
+
+const latestPerUser = perVoterPerUserMap[voterNumber];
+const entries = Object.values(latestPerUser);
+
+if(entries.length < 2) return;
+
+/* القوائم المختلفة */
+
+const uniqueLists = [...new Set(entries.map(x => x.list).filter(Boolean))];
+
+if(uniqueLists.length > 1){
+
+rows.push({
+voterNumber,
+name: entries[0].name,
+family: entries[0].family,
+center: entries[0].center,
+latestPerUser,
+diffCount: uniqueLists.length
+});
+
+}
+
+});
+
+/* ترتيب الاختلافات من الأكبر للأصغر */
+
+rows.sort((a,b)=>b.diffCount - a.diffCount);
+
+return rows;
+
+}
+
+    function buildDifferences(){
+      const rows = buildDifferencesData();
+      const box = document.getElementById("differencesBox");
+      document.getElementById("differencesSummary").innerHTML = `
+        <span>عدد الناخبين المختلف عليهم: <b>${rows.length}</b></span>
+        <span>—</span>
+        <span>عدد المستخدمين الظاهرين: <b>${usersList.length}</b></span>
+      `;
+
+      if(!rows.length){
+        box.innerHTML = `<div class="success-box">لا توجد اختلافات حالياً</div>`;
+        return;
+      }
+
+      let html = `
+        <div class="table-wrap" id="differencesTableWrap">
+          <table id="differencesTable">
+            <thead>
+              <tr>
+                <th>الناخب</th>
+                <th>العائلة</th>
+                <th>المركز</th>
+                ${usersList.map(u => `<th>${u}</th>`).join("")}
+                <th>عدد الاختلاف</th>
+		<th>الإجراء</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      rows.forEach(r => {
+        html += `<tr>`;
+        html += `<td>${r.name || "-"}</td>`;
+        html += `<td>${r.family || "-"}</td>`;
+        html += `<td>${r.center || "-"}</td>`;
+
+        usersList.forEach(u => {
+          const entry = r.latestPerUser[u];
+          html += `<td>${entry ? (entry.list || "-") : "-"}</td>`;
+        });
+
+html += `<td><b>${r.diffCount}</b></td>`;
+
+html += `
+<td>
+<button class="btn btn-primary" onclick="openAgreement('${r.voterNumber}')">
+تم الاتفاق
+</button>
+</td>
+`;
+
+html += `</tr>`;
+      });
+
+      html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      box.innerHTML = html;
+    }
+
+function buildAgreedData(){
+
+const rows = [];
+const seen = new Set(); // لمنع التكرار
+
+/* القرارات النهائية */
+
+finalDecisions.forEach(d => {
+
+if(!d.voterNumber) return;
+
+if(seen.has(d.voterNumber)) return;
+seen.add(d.voterNumber);
+
+rows.push({
+voterNumber: d.voterNumber,
+name: d.name,
+family: d.family,
+center: d.center,
+list: d.list,
+candidate: d.candidate,
+notes: d.notes || ""
+});
+
+});
+
+/* الإدخالات العادية */
+
+Object.keys(perVoterPerUserMap).forEach(voterNumber => {
+
+if(!voterNumber) return;
+
+/* إذا كان له قرار نهائي لا نضيفه مرة أخرى */
+
+if(finalDecisions.some(d => d.voterNumber === voterNumber)){
+return;
+}
+
+/* منع التكرار */
+
+if(seen.has(voterNumber)) return;
+seen.add(voterNumber);
+
+const latestPerUser = perVoterPerUserMap[voterNumber];
+const entries = Object.values(latestPerUser);
+
+if(!entries.length) return;
+
+const lists = entries.map(x=>x.list).filter(Boolean);
+const uniqueLists = [...new Set(lists)];
+
+/* الاتفاق */
+
+if(uniqueLists.length === 1){
+
+rows.push({
+voterNumber,
+name: entries[0].name,
+family: entries[0].family,
+center: entries[0].center,
+list: entries[0].list,
+candidate: entries[0].candidate,
+notes: `اتفاق بين ${entries.map(e=>e.user).join(" و ")}`
+});
+
+}
+
+});
+
+/* ترتيب حسب الاسم */
+
+rows.sort((a,b)=>a.name.localeCompare(b.name,"ar"));
+
+return rows;
+
+}
+
+    function buildAgreed(){
+      const rows = buildAgreedData();
+      const box = document.getElementById("agreedBox");
+
+      document.getElementById("agreedSummary").innerHTML = `
+        <span>عدد الأسماء المتوافق عليها: <b>${rows.length}</b></span>
+        <span>—</span>
+        <span>يشترط وجود إدخالين أو أكثر على نفس الناخب</span>
+      `;
+
+      if(!rows.length){
+        box.innerHTML = `<div class="danger-box">لا توجد أسماء متوافق عليها حالياً</div>`;
+        return;
+      }
+
+      box.innerHTML = `
+        <div class="table-wrap" id="agreedTableWrap">
+          <table id="agreedTable">
+            <thead>
+              <tr>
+                <th>الناخب</th>
+                <th>العائلة</th>
+                <th>المركز</th>
+                <th>القائمة</th>
+                <th>المرشح</th>
+		<th>ملاحظات</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => `
+                <tr>
+                  <td>${r.name || "-"}</td>
+                  <td>${r.family || "-"}</td>
+                  <td>${r.center || "-"}</td>
+                  <td>${r.list || "-"}</td>
+                  <td>${r.candidate || "-"}</td>
+		  <td class="notesCell">${r.notes || ""}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+window.refreshSystem = async function(){
+
+setSyncStatus("جار تحديث البيانات...");
+
+await loadAssignments();
+await loadFinalDecisions();
+
+buildDashboard();
+buildDifferences();
+buildAgreed();
+searchVoters(currentSearchPage);
+
+setSyncStatus("تم التحديث");
+
+}
+
+    window.exportTableToExcel = function(tableId, fileName){
+      const table = document.getElementById(tableId);
+      if(!table){
+        alert("لا يوجد جدول للتصدير");
+        return;
+      }
+
+      const html = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office"
+              xmlns:x="urn:schemas-microsoft-com:office:excel"
+              xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+          <meta charset="UTF-8">
+        </head>
+        <body>
+          ${table.outerHTML}
+        </body>
+        </html>
+      `;
+
+      const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${fileName}.xls`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+
+    window.printReport = function(title, contentId){
+      const contentEl = document.getElementById(contentId);
+      if(!contentEl){
+        alert("لا يوجد محتوى للطباعة");
+        return;
+      }
+
+      const user = getCurrentUser() || "-";
+      const now = new Date();
+      const nowText = now.toLocaleString("ar-EG");
+
+      const printWindow = window.open("", "_blank", "width=1200,height=900");
+      if(!printWindow) return;
+
+      printWindow.document.write(`
+        <html dir="rtl">
+        <head>
+          <meta charset="UTF-8">
+          <title>${title}</title>
+          <style>
+            body{
+              font-family: Arial, Tahoma, sans-serif;
+              direction: rtl;
+              margin:0;
+              padding:0;
+              color:#17212b;
+            }
+            .print-header{
+              position:fixed;
+              top:0;
+              left:0;
+              right:0;
+              background:#fff;
+              border-bottom:2px solid #dbe2e8;
+              padding:18px 28px;
+              z-index:9999;
+            }
+            .header-inner{
+              display:flex;
+              align-items:center;
+              justify-content:space-between;
+              gap:20px;
+            }
+            .brand{
+              display:flex;
+              align-items:center;
+              gap:14px;
+            }
+            .logo{
+              width:72px;
+              height:72px;
+              border:1px solid #dbe2e8;
+              border-radius:16px;
+              padding:6px;
+              box-sizing:border-box;
+              background:#fff;
+            }
+            .logo img{
+              width:100%;
+              height:100%;
+              object-fit:contain;
+            }
+            .title{
+              font-size:24px;
+              font-weight:bold;
+              color:#0f4c8a;
+              margin-bottom:4px;
+            }
+            .sub{
+              font-size:13px;
+              color:#6b7280;
+            }
+            .meta{
+              text-align:left;
+              font-size:13px;
+              color:#374151;
+              line-height:1.8;
+            }
+            .print-body{
+              padding:130px 24px 24px;
+            }
+            h2{
+              margin:0 0 18px;
+              color:#0f4c8a;
+            }
+            table{
+              width:100%;
+              border-collapse:collapse;
+              font-size:14px;
+            }
+            th, td{
+              border:1px solid #dbe2e8;
+              padding:8px;
+              text-align:right;
+              white-space:nowrap;
+            }
+            th{
+              background:#f8fafc;
+              color:#0f4c8a;
+            }
+            @page{
+              size:auto;
+              margin:22mm 10mm 14mm 10mm;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-header">
+            <div class="header-inner">
+              <div class="brand">
+                <div class="logo">
+                  <img src="logo.png" alt="logo">
+                </div>
+                <div>
+                  <div class="title">العهد والتنمية</div>
+                  <div class="sub">نظام إدارة الحملة الانتخابية - بيت ساحور</div>
+                  <div class="sub">${title}</div>
+                </div>
+              </div>
+
+              <div class="meta">
+                <div><b>تمت الطباعة بواسطة:</b> ${user}</div>
+                <div><b>التاريخ والوقت:</b> ${nowText}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="print-body">
+            ${contentEl.innerHTML}
+          </div>
+        </body>
+        </html>
+      `);
+
+      printWindow.document.close();
+      printWindow.focus();
+
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    };
+
+    async function init(){
+      try{
+        updateLoggedInPill();
+
+        setSyncStatus("جار تحميل الناخبين...");
+        await loadVoters();
+
+        setSyncStatus("جار تحميل الفرز...");
+        await loadAssignments();
+     await loadFinalDecisions();
+        fillFilters();
+        buildDashboard();
+        buildDifferences();
+        buildAgreed();
+        searchVoters(1);
+
+        setSyncStatus("متصل وجاهز");
+      }catch(err){
+        console.error(err);
+        setSyncStatus("حدث خطأ في التحميل");
+      }
+    }
+
+    window.addEventListener("load", function(){
+      setTimeout(() => {
+        const splash = document.getElementById("splashScreen");
+        if(splash) splash.style.display = "none";
+      }, 2000);
+    });
+
+    init();
+
+	document.getElementById("loginScreen").style.display = "flex";
+
+    document.getElementById("limitFilter").addEventListener("change", () => searchVoters(1));
+    document.getElementById("searchInput").addEventListener("keydown", (e) => {
+      if(e.key === "Enter") searchVoters(1);
+    });
+    document.getElementById("familyFilter").addEventListener("change", () => searchVoters(1));
+    document.getElementById("centerFilter").addEventListener("change", () => searchVoters(1));
+    document.getElementById("statusFilter").addEventListener("change", () => searchVoters(1));
+  </script>
+
+<div id="agreementModal" style="
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.4);
+align-items:center;
+justify-content:center;
+z-index:9999">
+
+<div style="background:white;padding:25px;border-radius:16px;width:350px">
+
+<h3 style="margin-top:0">اعتماد القرار النهائي</h3>
+
+<div style="margin-bottom:10px">
+<label>القائمة</label>
+<select id="finalList"></select>
+</div>
+
+<div style="margin-bottom:15px">
+<label>المرشح</label>
+<select id="finalCandidate"></select>
+</div>
+
+<button class="btn btn-primary" onclick="saveAgreement()">
+اعتماد القرار
+</button>
+
+<button class="btn btn-light" onclick="closeAgreement()" style="margin-top:10px">
+إلغاء
+</button>
+
+</div>
+</div>
+
+</body>
+</html>
