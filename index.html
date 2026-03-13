@@ -1524,9 +1524,18 @@ return matchSearch && matchFamily && matchCenter && matchStatus;
               <div class="field">
                 <label>القائمة</label>
                 <select id="list-${v.voterNumber}" onchange="onListChange('${v.voterNumber}')">
-                  <option value="">اختر القائمة</option>
-                  ${Object.keys(LISTS).map(listName => `<option value="${listName}" ${selectedList === listName ? "selected" : ""}>${listName}</option>`).join("")}
-                </select>
+
+<option value="">اختر القائمة</option>
+
+<option value="لن يصوّت" ${selectedList === "لن يصوّت" ? "selected" : ""}>
+لن يصوّت
+</option>
+
+${Object.keys(LISTS).map(listName => 
+`<option value="${listName}" ${selectedList === listName ? "selected" : ""}>${listName}</option>`
+).join("")}
+
+</select>
               </div>
 
               <div class="field">
@@ -1981,6 +1990,7 @@ alert("تم اعتماد القرار");
       });
 
       latest.forEach(a => {
+	if(a.list === "لن يصوّت") return;
         if (!buckets[a.list]) {
           buckets[a.list] = { confirmed:0, likely:0, undecided:0, prediction:0 };
         }
