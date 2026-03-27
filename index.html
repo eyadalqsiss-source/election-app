@@ -158,13 +158,13 @@
     .section{display:none}
     .section.active{display:block}
 
-    .card{
-      background:var(--card);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:18px;
-      margin-bottom:16px;
-    }
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:0 12px 35px rgba(0,0,0,.06);
+  padding:18px;
+  margin-bottom:16px;
+}
 
     .card-title{
       margin:0 0 14px;
@@ -382,12 +382,13 @@
       margin-top:10px;
     }
 
-    .progress-bar{
-      height:100%;
-      background:linear-gradient(90deg,var(--green),var(--orange));
-      width:0%;
-      transition:width .25s ease;
-    }
+.progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,#2f8f4e,#60c67a);
+  width:0%;
+  transition:width .4s ease;
+  border-radius:999px;
+}
 
     .table-wrap{
       overflow:auto;
@@ -812,6 +813,36 @@ margin:8mm;
 .metric-diff::before{background:linear-gradient(90deg,#ea580c,#fdba74);}
 .metric-progress::before{background:linear-gradient(90deg,#0f4c8a,#2f8f4e);}
 
+
+.metric-confirmed{
+  background:linear-gradient(180deg,#f0fff5,#ffffff);
+}
+
+.metric-likely{
+  background:linear-gradient(180deg,#eef6ff,#ffffff);
+}
+
+.metric-undecided{
+  background:linear-gradient(180deg,#fff7ed,#ffffff);
+}
+
+.metric-wontvote{
+  background:linear-gradient(180deg,#fff1f2,#ffffff);
+}
+
+.metric .value{
+  font-size:36px;
+  font-weight:800;
+}
+
+.metric .label{
+  font-size:13px;
+  opacity:.8;
+}
+
+.metric{
+  padding:22px;
+}
 
   </style>
 </head>
@@ -2421,55 +2452,55 @@ alert("تم اعتماد القرار");
 
 document.getElementById("dashboardCards").innerHTML = `
   <div class="metric metric-confirmed">
-    <div class="label">المؤكد</div>
+    <div class="label">✅ المؤكد</div>
     <div class="value">${confirmed}</div>
     <small>أعلى درجة دعم</small>
   </div>
 
   <div class="metric metric-likely">
-    <div class="label">المرجّح</div>
+    <div class="label">🔵 المرجّح</div>
     <div class="value">${likely}</div>
     <small>قابل للتثبيت</small>
   </div>
 
   <div class="metric metric-undecided">
-    <div class="label">المتردد</div>
+    <div class="label">⚠️ المتردد</div>
     <div class="value">${undecided}</div>
     <small>يحتاج متابعة</small>
   </div>
 
   <div class="metric metric-wontvote">
-    <div class="label">لن يصوّت</div>
+    <div class="label">❌ لن يصوّت</div>
     <div class="value">${wontVote}</div>
     <small>تم تحديدهم كغير مصوّتين</small>
   </div>
 
   <div class="metric metric-filled">
-    <div class="label">المفروز</div>
+    <div class="label">📊 المفروز</div>
     <div class="value">${filled}</div>
     <small>تم إدخاله حتى الآن</small>
   </div>
 
   <div class="metric metric-unfilled">
-    <div class="label">غير المفروز</div>
+    <div class="label">📂 غير المفروز</div>
     <div class="value">${unfilled}</div>
     <small>من أصل ${total} ناخب</small>
   </div>
 
   <div class="metric metric-agreed">
-    <div class="label">المتوافق عليهم</div>
+    <div class="label">🤝 المتوافق عليهم</div>
     <div class="value">${agreedCount}</div>
     <small>ناخب عليهم اتفاق</small>
   </div>
 
   <div class="metric metric-diff">
-    <div class="label">الاختلافات</div>
+    <div class="label">⚡ الاختلافات</div>
     <div class="value">${differencesCount}</div>
     <small>ناخب عليهم اختلاف</small>
   </div>
 
   <div class="metric metric-progress">
-    <div class="label">نسبة الإنجاز</div>
+    <div class="label">📈 نسبة الإنجاز</div>
     <div class="value">${progress}%</div>
     <small>${filled} / ${total}</small>
   </div>
