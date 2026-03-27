@@ -3085,6 +3085,90 @@ setSyncStatus("تم التحديث");
 
 window.printReport = function(title, contentId){
   const contentEl = document.getElementById(contentId);
+
+let printContentHtml = contentEl ? contentEl.innerHTML : "";
+
+if(contentId === "agreedBox"){
+  const rows = buildAgreedData().filter(r => {
+    const search =
+      (document.getElementById("agreedSearchInput")?.value || "")
+      .toLowerCase()
+      .trim();
+
+    const familyFilter = selectedAgreedFamilies;
+    const centerFilter =
+      document.getElementById("agreedCenterFilter")?.value || "all";
+
+    const listFilter =
+      document.getElementById("agreedListFilter")?.value || "all";
+
+    const delegateFilter =
+      document.getElementById("agreedDelegateFilter")?.value || "all";
+
+    const name = (r.name || "").toLowerCase();
+    const family = (r.family || "").toLowerCase();
+    const center = (r.center || "").toLowerCase();
+    const voterNumber = (r.voterNumber || "").toString().toLowerCase();
+
+    if(search){
+      if(
+        !name.includes(search) &&
+        !family.includes(search) &&
+        !center.includes(search) &&
+        !voterNumber.includes(search)
+      ){
+        return false;
+      }
+    }
+
+    if(familyFilter.length > 0 && !familyFilter.includes(r.family)){
+      return false;
+    }
+
+    if(centerFilter !== "all" && r.center !== centerFilter){
+      return false;
+    }
+
+    if(listFilter !== "all" && r.list !== listFilter){
+      return false;
+    }
+
+    const assignedDelegate = getDelegateForVoter(r.voterNumber);
+
+    if(delegateFilter !== "all" && assignedDelegate !== delegateFilter){
+      return false;
+    }
+
+    return true;
+  });
+
+  printContentHtml = `
+    <div class="table-wrap">
+      <table id="printAgreedTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>اسم الناخب</th>
+            <th>العائلة</th>
+            <th>المركز</th>
+            <th>المندوب المسؤول</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${r.name || "-"}</td>
+              <td>${r.family || "-"}</td>
+              <td>${r.center || "-"}</td>
+              <td>${getDelegateForVoter(r.voterNumber) || "-"}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
 let votersCount = 0;
 
 if(contentEl){
@@ -3270,7 +3354,7 @@ if(contentEl){
 عدد الناخبين: ${votersCount}
 </div>
 
-${contentEl.innerHTML}
+${printContentHtml}
 
 </div>
 
