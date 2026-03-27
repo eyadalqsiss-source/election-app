@@ -776,6 +776,42 @@ margin:8mm;
 
 .multi-filter-option input{width:auto;}
 
+.metric{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:18px;
+  min-height:125px;
+  position:relative;
+  overflow:hidden;
+  transition:.2s ease;
+}
+
+.metric:hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 30px rgba(0,0,0,.08);
+}
+
+.metric::before{
+  content:"";
+  position:absolute;
+  top:0;
+  right:0;
+  left:0;
+  height:5px;
+  background:#dbe2e8;
+}
+
+.metric-confirmed::before{background:linear-gradient(90deg,#1f9d55,#34c759);}
+.metric-likely::before{background:linear-gradient(90deg,#2563eb,#60a5fa);}
+.metric-undecided::before{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
+.metric-wontvote::before{background:linear-gradient(90deg,#dc2626,#f87171);}
+.metric-filled::before{background:linear-gradient(90deg,#0f766e,#2dd4bf);}
+.metric-unfilled::before{background:linear-gradient(90deg,#64748b,#cbd5e1);}
+.metric-agreed::before{background:linear-gradient(90deg,#7c3aed,#c084fc);}
+.metric-diff::before{background:linear-gradient(90deg,#ea580c,#fdba74);}
+.metric-progress::before{background:linear-gradient(90deg,#0f4c8a,#2f8f4e);}
+
 
   </style>
 </head>
@@ -854,8 +890,7 @@ margin:8mm;
 
     <!-- Dashboard -->
     <div id="dashboard" class="section active">
-      <div class="grid grid-4" id="dashboardCards"></div>
-
+<div class="grid grid-3" id="dashboardCards"></div>
       <div class="two-col">
         <div>
           <div class="card">
@@ -1207,7 +1242,7 @@ function fillAgreedFilters(){
 
 const families = [...new Set(voters.map(v=>v.family).filter(Boolean).sort(sortArabicText))];
 const centers = [...new Set(voters.map(v=>v.center).filter(Boolean).sort(sortArabicText))];
-const lists = Object.keys(LISTS);
+const lists = ["لن يصوّت", ...Object.keys(LISTS)];
 
 const centerSelect = document.getElementById("agreedCenterFilter");
 const listSelect = document.getElementById("agreedListFilter");
@@ -2216,22 +2251,30 @@ window.openAgreement = function(voterNumber){
 
    listSelect.innerHTML = `
    <option value="">اختر القائمة</option>
+   <option value="لن يصوّت">لن يصوّت</option>
    ${Object.keys(LISTS).map(l=>`<option value="${l}">${l}</option>`).join("")}
    `;
 
-   document.getElementById("finalCandidate").innerHTML = "";
+   document.getElementById("finalCandidate").innerHTML = `<option value="">اختر المرشح</option>`;
 
 };
 
-document.getElementById("finalList").addEventListener("change",function(){
+document.getElementById("finalList").addEventListener("change", function(){
 
-const list = this.value;
+  const list = this.value;
+  const candidateSelect = document.getElementById("finalCandidate");
 
-const candidates = LISTS[list] || [];
+  if(list === "لن يصوّت"){
+    candidateSelect.innerHTML = `<option value="">لا يوجد مرشح</option>`;
+    return;
+  }
 
-document.getElementById("finalCandidate").innerHTML =
-candidates.map(c=>`<option value="${c}">${c}</option>`).join("");
+  const candidates = LISTS[list] || [];
 
+  candidateSelect.innerHTML = `
+    <option value="">اختر المرشح</option>
+    ${candidates.map(c => `<option value="${c}">${c}</option>`).join("")}
+  `;
 });
 
 window.closeAgreement = function(){
@@ -2243,11 +2286,15 @@ document.getElementById("agreementModal").style.display="none";
 window.saveAgreement = async function(){
 
 const list = document.getElementById("finalList").value;
-const candidate = document.getElementById("finalCandidate").value;
+let candidate = document.getElementById("finalCandidate").value;
 
 if(!list){
 alert("اختر القائمة");
 return;
+}
+
+if(list === "لن يصوّت"){
+  candidate = "";
 }
 
 const voter = voters.find(v=>v.voterNumber === currentAgreementVoter);
@@ -2367,59 +2414,66 @@ alert("تم اعتماد القرار");
       const undecided = latest.filter(a => a.status === "متردد").length;
       const unfilled = Math.max(0, total - filled);
       const progress = total ? Math.round((filled / total) * 100) : 0;
+      const wontVote = latest.filter(a => a.list === "لن يصوّت").length;
 
       const differencesCount = buildDifferencesData().length;
       const agreedCount = buildAgreedData().length;
 
-      document.getElementById("dashboardCards").innerHTML = `
-        <div class="metric">
-          <div class="label">المؤكد</div>
-          <div class="value">${confirmed}</div>
-          <small>أعلى درجة دعم</small>
-        </div>
+document.getElementById("dashboardCards").innerHTML = `
+  <div class="metric metric-confirmed">
+    <div class="label">المؤكد</div>
+    <div class="value">${confirmed}</div>
+    <small>أعلى درجة دعم</small>
+  </div>
 
-        <div class="metric">
-          <div class="label">المرجّح</div>
-          <div class="value">${likely}</div>
-          <small>قابل للتثبيت</small>
-        </div>
+  <div class="metric metric-likely">
+    <div class="label">المرجّح</div>
+    <div class="value">${likely}</div>
+    <small>قابل للتثبيت</small>
+  </div>
 
-        <div class="metric">
-          <div class="label">المتردد</div>
-          <div class="value">${undecided}</div>
-          <small>يحتاج متابعة</small>
-        </div>
+  <div class="metric metric-undecided">
+    <div class="label">المتردد</div>
+    <div class="value">${undecided}</div>
+    <small>يحتاج متابعة</small>
+  </div>
 
-        <div class="metric">
-          <div class="label">غير المفروز</div>
-          <div class="value">${unfilled}</div>
-          <small>من أصل ${total} ناخب</small>
-        </div>
+  <div class="metric metric-wontvote">
+    <div class="label">لن يصوّت</div>
+    <div class="value">${wontVote}</div>
+    <small>تم تحديدهم كغير مصوّتين</small>
+  </div>
 
-        <div class="metric">
-          <div class="label">المفروز</div>
-          <div class="value">${filled}</div>
-          <small>تم إدخاله حتى الآن</small>
-        </div>
+  <div class="metric metric-filled">
+    <div class="label">المفروز</div>
+    <div class="value">${filled}</div>
+    <small>تم إدخاله حتى الآن</small>
+  </div>
 
-        <div class="metric">
-          <div class="label">الاختلافات</div>
-          <div class="value">${differencesCount}</div>
-          <small>ناخب عليهم اختلاف</small>
-        </div>
+  <div class="metric metric-unfilled">
+    <div class="label">غير المفروز</div>
+    <div class="value">${unfilled}</div>
+    <small>من أصل ${total} ناخب</small>
+  </div>
 
-        <div class="metric">
-          <div class="label">المتوافق عليهم</div>
-          <div class="value">${agreedCount}</div>
-          <small>ناخب عليهم اتفاق</small>
-        </div>
+  <div class="metric metric-agreed">
+    <div class="label">المتوافق عليهم</div>
+    <div class="value">${agreedCount}</div>
+    <small>ناخب عليهم اتفاق</small>
+  </div>
 
-        <div class="metric">
-          <div class="label">نسبة الإنجاز</div>
-          <div class="value">${progress}%</div>
-          <small>${filled} / ${total}</small>
-        </div>
-      `;
+  <div class="metric metric-diff">
+    <div class="label">الاختلافات</div>
+    <div class="value">${differencesCount}</div>
+    <small>ناخب عليهم اختلاف</small>
+  </div>
+
+  <div class="metric metric-progress">
+    <div class="label">نسبة الإنجاز</div>
+    <div class="value">${progress}%</div>
+    <small>${filled} / ${total}</small>
+  </div>
+`;
 
       document.getElementById("progressText").textContent = `${filled} / ${total} (${progress}%)`;
       document.getElementById("progressBar").style.width = `${progress}%`;
