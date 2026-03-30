@@ -3648,32 +3648,52 @@ document
 });
 
 
+async function addDelegate(name){
+  const cleanName = safeText(name);
+  if(!cleanName) return false;
+
+  if(delegatesList.includes(cleanName)){
+    return false;
+  }
+
+  await saveDelegateToFirebase(cleanName);
+  await loadDelegates();
+  return true;
+}
+
+async function assignDelegateToVoter(voterNumber, delegateName){
+  const cleanVoter = safeText(voterNumber);
+  const cleanDelegate = safeText(delegateName);
+
+  if(!cleanVoter) return;
+
+  if(!cleanDelegate || cleanDelegate === "all"){
+    await removeDelegateAssignmentFromFirebase(cleanVoter);
+  }else{
+    await saveDelegateAssignmentToFirebase(cleanVoter, cleanDelegate);
+  }
+
+  await loadDelegateAssignments();
+}
+
 // ====== FAMILY GROUPS LOGIC ======
 
-// إنشاء عائلة أم
-window.createParentFamily = function(){
 
+window.createParentFamily = async function(){
   const input = document.getElementById("newParentFamily");
-  const name = (input.value || "").trim();
+  const name = safeText(input.value);
 
   if(!name){
     alert("أدخل اسم العائلة");
     return;
   }
 
-  // إذا موجودة مسبقاً
-  const exists = Object.values(familyGroupMap).includes(name);
+  await saveFamilyGroupToFirebase(name, name);
 
-  if(!exists){
-    familyGroupMap[name] = name;
-  }
-
-  saveFamilyGroups();
   input.value = "";
-
+  await loadFamilyGroups();
   renderFamilyGroupsUI();
 };
-
 
 // جلب كل العائلات
 function getAllFamilies(){
