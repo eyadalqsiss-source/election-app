@@ -917,6 +917,7 @@ margin:8mm;
       <button class="tab-btn" onclick="showSection('searchSection', this)">فرز الناخبين</button>
       <button class="tab-btn" onclick="showSection('differencesSection', this)">الاختلافات</button>
       <button class="tab-btn" onclick="showSection('agreedSection', this)">المتوافق عليهم</button>
+      <button class="tab-btn" onclick="showSection('familyGroupsSection', this)">🧬 تجميع العائلات </button>
     </div>
 
     <!-- Dashboard -->
@@ -1066,8 +1067,46 @@ margin:8mm;
       </div>
     </div>
 
+
+<!-- Family Groups -->
+<div id="familyGroupsSection" class="section">
+
+  <div class="card">
+    <h3 class="card-title">🧬 تجميع العائلات</h3>
+
+    <!-- إنشاء عائلة أم -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;">
+      <input id="newParentFamily" placeholder="اسم العائلة الأم" />
+      <button class="btn btn-primary" onclick="createParentFamily()">إنشاء</button>
+    </div>
+
+    <!-- اختيار العائلة الأم -->
+    <div style="margin-bottom:15px;">
+      <label>اختر العائلة الأم:</label>
+      <select id="parentFamilySelect"></select>
+    </div>
+
+    <!-- العائلات الحرة -->
+    <div style="margin-bottom:10px;font-weight:bold;">العائلات غير المربوطة:</div>
+<div id="freeFamiliesBox" style="height:520px;overflow:auto;border:1px solid var(--border);padding:12px;border-radius:12px;background:#fafafa;"></div>
+
+    <button class="btn btn-secondary" style="margin-top:10px;" onclick="assignSelectedFamilies()">
+      ➕ إضافة إلى العائلة الأم
+    </button>
+
+  </div>
+
+  <div class="card">
+    <h3 class="card-title">📂 العائلات المجمعة</h3>
+    <div id="groupedFamiliesBox"></div>
+  </div>
+
+</div>
+
     <!-- Agreed -->
 <div id="agreedSection" class="section">
+
+
 <div class="card">
 
 <div class="section-title-row">
@@ -1268,6 +1307,27 @@ onclick="exportTableToExcel('agreedTable','agreed_voters_report')">
     let delegatesList = [];
     let delegateAssignmentsMap = {};
     let selectedDelegateFilter = "all";
+
+// ====== Family Groups System ======
+
+let familyGroupMap = {};
+
+function loadFamilyGroups(){
+  try{
+    const raw = localStorage.getItem("familyGroupMap");
+    familyGroupMap = raw ? JSON.parse(raw) : {};
+  }catch(e){
+    familyGroupMap = {};
+  }
+}
+
+function saveFamilyGroups(){
+  localStorage.setItem("familyGroupMap", JSON.stringify(familyGroupMap));
+}
+
+function getGroupedFamilyName(family){
+  return familyGroupMap[family] || family;
+}
 
 function fillAgreedFilters(){
 
@@ -1656,11 +1716,11 @@ function fillFilters(){
   const centerSel = document.getElementById("centerFilter");
   const statusSel = document.getElementById("statusFilter");
 
-  const families = [...new Set(
-    voters.map(v => v.family)
-    .filter(Boolean)
-    .sort(sortArabicText)
-  )];
+const families = [...new Set(
+  voters.map(v => getGroupedFamilyName(v.family))
+  .filter(Boolean)
+  .sort(sortArabicText)
+)];
 
   const centers = ["الكل", ...new Set(
     voters.map(v => v.center)
@@ -1784,8 +1844,10 @@ number.includes(q) ||
 center.includes(q) ||
 phone.includes(q);
 
+const groupedFamily = getGroupedFamilyName(v.family);
+
 const matchFamily =
-familyFilter.length === 0 || familyFilter.includes(v.family);
+familyFilter.length === 0 || familyFilter.includes(groupedFamily);
 
 const matchCenter =
 centerFilter === "الكل" || v.center === centerFilter;
@@ -2682,29 +2744,31 @@ document.getElementById("dashboardCards").innerHTML = `
       latest.forEach(a => {
         if(!a.family) return;
 
-        if(!families[a.family]){
-          families[a.family] = {
-            confirmed:0,
-            likely:0,
-            undecided:0,
-            total:0,
-            score:0
-          };
-        }
+const familyName = getGroupedFamilyName(a.family);
 
-        families[a.family].total++;
+if(!families[familyName]){
+  families[familyName] = {
+    confirmed:0,
+    likely:0,
+    undecided:0,
+    total:0,
+    score:0
+  };
+}
+
+        families[familyName].total++;
 
         if(a.status === "مؤكد"){
-          families[a.family].confirmed++;
-          families[a.family].score += 3;
+          families[familyName].confirmed++;
+          families[familyName].score += 3;
         }
         if(a.status === "مرجّح"){
-          families[a.family].likely++;
-          families[a.family].score += 2;
+          families[familyName].likely++;
+          families[familyName].score += 2;
         }
         if(a.status === "متردد"){
-          families[a.family].undecided++;
-          families[a.family].score += 1;
+          families[familyName].undecided++;
+          families[familyName].score += 1;
         }
       });
 
@@ -3455,30 +3519,34 @@ ${printContentHtml}
   },500);
 };
 
-    async function init(){
-      try{
-        updateLoggedInPill();
-        loadDelegatesFromLocal();
+async function init(){
+  try{
+    updateLoggedInPill();
+    loadDelegatesFromLocal();
+    loadFamilyGroups();
 
-        setSyncStatus("جار تحميل الناخبين...");
-        await loadVoters();
+    setSyncStatus("جار تحميل الناخبين...");
+    await loadVoters();
 
-        setSyncStatus("جار تحميل الفرز...");
-        await loadAssignments();
-     await loadFinalDecisions();
-fillFilters();
-fillAgreedFilters();   // أضف هذا السطر
-buildDashboard();
-buildDifferences();
-buildAgreed();
-searchVoters(1);
+    setSyncStatus("جار تحميل الفرز...");
+    await loadAssignments();
+    await loadFinalDecisions();
 
-        setSyncStatus("متصل وجاهز");
-      }catch(err){
-        console.error(err);
-        setSyncStatus("حدث خطأ في التحميل");
-      }
-    }
+    fillFilters();
+    fillAgreedFilters();
+    fillDelegateFilter();
+    buildDashboard();
+    buildDifferences();
+    buildAgreed();
+    searchVoters(1);
+    renderFamilyGroupsUI();
+
+    setSyncStatus("متصل وجاهز");
+  }catch(err){
+    console.error(err);
+    setSyncStatus("حدث خطأ في التحميل");
+  }
+}
 
     window.addEventListener("load", function(){
       setTimeout(() => {
@@ -3544,6 +3612,325 @@ document
   selectedDelegateFilter = this.value || "all";
   buildAgreed();
 });
+
+
+// ====== FAMILY GROUPS LOGIC ======
+
+// إنشاء عائلة أم
+window.createParentFamily = function(){
+
+  const input = document.getElementById("newParentFamily");
+  const name = (input.value || "").trim();
+
+  if(!name){
+    alert("أدخل اسم العائلة");
+    return;
+  }
+
+  // إذا موجودة مسبقاً
+  const exists = Object.values(familyGroupMap).includes(name);
+
+  if(!exists){
+    familyGroupMap[name] = name;
+  }
+
+  saveFamilyGroups();
+  input.value = "";
+
+  renderFamilyGroupsUI();
+};
+
+
+// جلب كل العائلات
+function getAllFamilies(){
+  return [...new Set(voters.map(v => v.family).filter(Boolean))];
+}
+
+
+// العائلات الحرة (غير مربوطة)
+function getFreeFamilies(){
+  return getAllFamilies().filter(f => !familyGroupMap[f]);
+}
+
+
+// العائلات الأم
+function getParentFamilies(){
+  return [...new Set(Object.values(familyGroupMap))];
+}
+
+
+function renderFamilyGroupsUI(){
+
+  // تعبئة select
+  const parentSelect = document.getElementById("parentFamilySelect");
+  const parents = getParentFamilies();
+
+  parentSelect.innerHTML = `
+    <option value="">اختر العائلة</option>
+    ${parents.map(p => `<option value="${p}">${p}</option>`).join("")}
+  `;
+
+  // عرض العائلات الحرة
+  const freeBox = document.getElementById("freeFamiliesBox");
+  const freeFamilies = getFreeFamilies();
+
+  if(!freeFamilies.length){
+    freeBox.innerHTML = `<div class="empty">لا يوجد عائلات حرة</div>`;
+  }else{
+
+freeBox.innerHTML = freeFamilies.map(f => {
+  const count = voters.filter(v => v.family === f).length;
+
+  return `
+    <label style="
+      display:grid;
+      grid-template-columns: 1fr 28px;
+      align-items:center;
+      gap:12px;
+      padding:10px 14px;
+      min-height:46px;
+      border-radius:12px;
+      border:1px solid #e5e7eb;
+      margin-bottom:6px;
+      cursor:pointer;
+      transition:.2s;
+      font-weight:600;
+      font-size:15px;
+      background:#fff;
+    "
+    onmouseover="this.style.background='#f0fdf4'"
+    onmouseout="this.style.background='#fff'">
+
+      <span style="
+        display:block;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+      " title="${f}">
+        ${f} (${count})
+      </span>
+
+      <input
+        type="checkbox"
+        class="free-family-checkbox"
+        value="${f}"
+        style="width:18px;height:18px;cursor:pointer;margin:0;"
+      >
+
+    </label>
+  `;
+}).join("");
+}
+
+  // عرض المجموعات
+  const groupedBox = document.getElementById("groupedFamiliesBox");
+  const groups = {};
+
+  Object.keys(familyGroupMap).forEach(f => {
+    const parent = familyGroupMap[f];
+
+    if(!groups[parent]) groups[parent] = [];
+    groups[parent].push(f);
+  });
+
+if(!Object.keys(groups).length){
+  groupedBox.innerHTML = `<div class="empty">لا يوجد مجموعات بعد</div>`;
+}else{
+  const sortedParents = Object.keys(groups)
+    .map(parent => {
+      const parentTotal = groups[parent].reduce((sum, f) => {
+        return sum + voters.filter(v => v.family === f).length;
+      }, 0);
+
+      return { parent, total: parentTotal };
+    })
+    .sort((a, b) => b.total - a.total);
+
+  groupedBox.innerHTML = `
+    <div style="
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+    ">
+      ${sortedParents.map(item => {
+        const parent = item.parent;
+        const parentTotal = item.total;
+
+        return `
+          <div style="
+            border:1px solid var(--border);
+            border-radius:12px;
+            padding:10px;
+            background:#fff;
+            min-height:120px;
+          ">
+
+            <div style="
+              font-weight:bold;
+              margin-bottom:6px;
+              color:var(--blue);
+              font-size:15px;
+            ">
+              ${parent} (${parentTotal})
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              ${groups[parent].map(f => `
+                <div style="
+                  display:flex;
+                  justify-content:space-between;
+                  align-items:center;
+                  font-size:13px;
+                ">
+
+                  <span>
+                    ${f} (${voters.filter(v => v.family === f).length})
+                  </span>
+
+                  <button
+                    onclick="removeFamilyFromGroup('${f}')"
+                    style="
+                      background:#fee2e2;
+                      color:#b91c1c;
+                      border:none;
+                      border-radius:6px;
+                      padding:2px 6px;
+                      font-size:11px;
+                      cursor:pointer;
+                    ">
+                    ✕
+                  </button>
+
+                </div>
+              `).join("")}
+            </div>
+
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+
+const sortedParents = Object.keys(groups)
+  .map(parent => {
+    const parentTotal = groups[parent].reduce((sum, f) => {
+      return sum + voters.filter(v => v.family === f).length;
+    }, 0);
+
+    return { parent, total: parentTotal };
+  })
+  .sort((a, b) => b.total - a.total);
+
+groupedBox.innerHTML = `
+  <div style="
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:10px;
+  ">
+    ${sortedParents.map(item => {
+      const parent = item.parent;
+      const parentTotal = item.total;
+
+      return `
+        <div style="
+          border:1px solid var(--border);
+          border-radius:12px;
+          padding:10px;
+          background:#fff;
+          min-height:120px;
+        ">
+
+          <div style="
+            font-weight:bold;
+            margin-bottom:6px;
+            color:var(--blue);
+            font-size:15px;
+          ">
+            ${parent} (${parentTotal})
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            ${groups[parent].map(f => `
+              <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                font-size:13px;
+              ">
+
+                <span>
+                  ${f} (${voters.filter(v => v.family === f).length})
+                </span>
+
+                <button
+                  onclick="removeFamilyFromGroup('${f}')"
+                  style="
+                    background:#fee2e2;
+                    color:#b91c1c;
+                    border:none;
+                    border-radius:6px;
+                    padding:2px 6px;
+                    font-size:11px;
+                    cursor:pointer;
+                  ">
+                  ✕
+                </button>
+
+              </div>
+            `).join("")}
+          </div>
+
+        </div>
+      `;
+    }).join("")}
+  </div>
+`;
+
+  fillFilters();
+  fillAgreedFilters();
+  fillDelegateFilter();
+  searchVoters(1);
+  buildAgreed();
+  buildDashboard();
+}
+
+// إضافة العائلات للعائلة الأم
+window.assignSelectedFamilies = function(){
+
+  const parent = document.getElementById("parentFamilySelect").value;
+
+  if(!parent){
+    alert("اختر عائلة أم");
+    return;
+  }
+
+  const selected = Array.from(document.querySelectorAll(".free-family-checkbox:checked"))
+    .map(cb => cb.value);
+
+  if(!selected.length){
+    alert("اختر عائلات");
+    return;
+  }
+
+  selected.forEach(f => {
+    familyGroupMap[f] = parent;
+  });
+
+  saveFamilyGroups();
+  renderFamilyGroupsUI();
+};
+
+
+// إزالة عائلة
+window.removeFamilyFromGroup = function(family){
+
+  delete familyGroupMap[family];
+
+  saveFamilyGroups();
+  renderFamilyGroupsUI();
+};
 
 </script>
 
