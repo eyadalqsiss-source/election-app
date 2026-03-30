@@ -1192,12 +1192,15 @@ onclick="exportTableToExcel('agreedTable','agreed_voters_report')">
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      addDoc
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  setDoc,
+  doc,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyD8y17wrQKTOtbm1GBtvZ4jtSTo38scFPc",
@@ -1312,22 +1315,103 @@ onclick="exportTableToExcel('agreedTable','agreed_voters_report')">
 
 let familyGroupMap = {};
 
-function loadFamilyGroups(){
-  try{
-    const raw = localStorage.getItem("familyGroupMap");
-    familyGroupMap = raw ? JSON.parse(raw) : {};
-  }catch(e){
-    familyGroupMap = {};
-  }
-}
-
-function saveFamilyGroups(){
-  localStorage.setItem("familyGroupMap", JSON.stringify(familyGroupMap));
-}
 
 function getGroupedFamilyName(family){
   return familyGroupMap[family] || family;
 }
+
+// ==========================
+// 🔥 Firebase بدل localStorage
+// ==========================
+
+async function loadFamilyGroups(){
+  familyGroupMap = {};
+
+  const snapshot = await getDocs(collection(db, "family_groups"));
+
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    const family = safeText(data.family);
+    const parent = safeText(data.parent);
+
+    if(family && parent){
+      familyGroupMap[family] = parent;
+    }
+  });
+}
+
+async function saveFamilyGroupToFirebase(family, parent){
+  await setDoc(doc(db, "family_groups", family), {
+    family,
+    parent
+  });
+}
+
+async function removeFamilyGroupFromFirebase(family){
+  await deleteDoc(doc(db, "family_groups", family));
+}
+
+
+// ==========================
+// 👤 المندوبين
+// ==========================
+
+async function loadDelegates(){
+  delegatesList = [];
+
+  const snapshot = await getDocs(collection(db, "delegates"));
+
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    const name = safeText(data.name);
+    if(name) delegatesList.push(name);
+  });
+
+  delegatesList = [...new Set(delegatesList)].sort(sortArabicText);
+}
+
+async function saveDelegateToFirebase(name){
+  await setDoc(doc(db, "delegates", name), {
+    name
+  });
+}
+
+async function removeDelegateFromFirebase(name){
+  await deleteDoc(doc(db, "delegates", name));
+}
+
+
+// ==========================
+// 🔗 ربط المندوبين بالناخبين
+// ==========================
+
+async function loadDelegateAssignments(){
+  delegateAssignmentsMap = {};
+
+  const snapshot = await getDocs(collection(db, "delegate_assignments"));
+
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    const voterNumber = safeText(data.voterNumber);
+    const delegateName = safeText(data.delegateName);
+
+    if(voterNumber && delegateName){
+      delegateAssignmentsMap[voterNumber] = delegateName;
+    }
+  });
+}
+
+async function saveDelegateAssignmentToFirebase(voterNumber, delegateName){
+  await setDoc(doc(db, "delegate_assignments", voterNumber), {
+    voterNumber,
+    delegateName
+  });
+}
+
+async function removeDelegateAssignmentFromFirebase(voterNumber){
+  await deleteDoc(doc(db, "delegate_assignments", voterNumber));
+}
+
 
 function fillAgreedFilters(){
 
@@ -1357,87 +1441,35 @@ lists.forEach(l=>{
       return (v ?? "").toString().trim();
     }
 
-function loadDelegatesFromLocal(){
-  try{
-    const delegatesRaw = localStorage.getItem("delegatesList");
-    const assignmentsRaw = localStorage.getItem("delegateAssignmentsMap");
+window.removeFamilyFromGroup = async function(family){
 
-    delegatesList = delegatesRaw ? JSON.parse(delegatesRaw) : [];
-    delegateAssignmentsMap = assignmentsRaw ? JSON.parse(assignmentsRaw) : {};
+  await removeFamilyGroupFromFirebase(family);
 
-    if(!Array.isArray(delegatesList)){
-      delegatesList = [];
-    }
+  await loadFamilyGroups();
+  renderFamilyGroupsUI();
+};
 
-    if(typeof delegateAssignmentsMap !== "object" || delegateAssignmentsMap === null){
-      delegateAssignmentsMap = {};
-    }
 
-    delegatesList = delegatesList
-      .map(name => safeText(name))
-      .filter(Boolean)
-      .filter((name, index, arr) => arr.indexOf(name) === index)
-      .sort((a,b) => sortArabicText(a,b));
-
-  }catch(err){
-    console.error("خطأ في تحميل المندوبين المحليين", err);
-    delegatesList = [];
-    delegateAssignmentsMap = {};
-  }
-}
-
-function saveDelegatesToLocal(){
-  localStorage.setItem("delegatesList", JSON.stringify(delegatesList));
-}
-
-function saveDelegateAssignmentsToLocal(){
-  localStorage.setItem("delegateAssignmentsMap", JSON.stringify(delegateAssignmentsMap));
-}
-
-function addDelegate(name){
-  const cleanName = safeText(name);
-  if(!cleanName) return false;
-
-  if(delegatesList.includes(cleanName)){
-    return false;
-  }
-
-  delegatesList.push(cleanName);
-  delegatesList.sort((a,b) => sortArabicText(a,b));
-  saveDelegatesToLocal();
-  return true;
-}
-
-function removeDelegate(name){
+async function removeDelegate(name){
   const cleanName = safeText(name);
   if(!cleanName) return;
 
-  delegatesList = delegatesList.filter(d => d !== cleanName);
+  await removeDelegateFromFirebase(cleanName);
 
-  Object.keys(delegateAssignmentsMap).forEach(voterNumber => {
-    if(delegateAssignmentsMap[voterNumber] === cleanName){
-      delete delegateAssignmentsMap[voterNumber];
-    }
+  const assignedVoters = Object.keys(delegateAssignmentsMap).filter(voterNumber => {
+    return delegateAssignmentsMap[voterNumber] === cleanName;
   });
 
-  saveDelegatesToLocal();
-  saveDelegateAssignmentsToLocal();
-}
-
-function assignDelegateToVoter(voterNumber, delegateName){
-  const cleanVoter = safeText(voterNumber);
-  const cleanDelegate = safeText(delegateName);
-
-  if(!cleanVoter) return;
-
-  if(!cleanDelegate || cleanDelegate === "all"){
-    delete delegateAssignmentsMap[cleanVoter];
-  }else{
-    delegateAssignmentsMap[cleanVoter] = cleanDelegate;
+  for(const voterNumber of assignedVoters){
+    await removeDelegateAssignmentFromFirebase(voterNumber);
   }
 
-  saveDelegateAssignmentsToLocal();
+  await loadDelegates();
+  await loadDelegateAssignments();
 }
+
+
+
 
 function getDelegateForVoter(voterNumber){
   return safeText(delegateAssignmentsMap[voterNumber] || "");
@@ -1484,7 +1516,7 @@ window.closeDelegatesModal = function(){
   document.getElementById("delegatesModal").style.display = "none";
 };
 
-window.addNewDelegateFromModal = function(){
+window.addNewDelegateFromModal = async function(){
   const input = document.getElementById("newDelegateName");
   const name = safeText(input.value);
 
@@ -1493,7 +1525,7 @@ window.addNewDelegateFromModal = function(){
     return;
   }
 
-  const added = addDelegate(name);
+  const added = await addDelegate(name);
 
   if(!added){
     alert("هذا المندوب موجود مسبقاً أو الاسم غير صالح");
@@ -1506,10 +1538,10 @@ window.addNewDelegateFromModal = function(){
   buildAgreed();
 };
 
-window.deleteDelegateByName = function(name){
+window.deleteDelegateByName = async function(name){
   if(!confirm(`هل تريد حذف المندوب: ${name} ؟`)) return;
 
-  removeDelegate(name);
+  await removeDelegate(name);
 
   if(selectedDelegateFilter === name){
     selectedDelegateFilter = "all";
@@ -1519,7 +1551,6 @@ window.deleteDelegateByName = function(name){
   renderDelegatesList();
   buildAgreed();
 };
-
 
     function setSyncStatus(text){
       document.getElementById("syncStatus").textContent = text;
@@ -3049,10 +3080,10 @@ function delegateOptionsHtml(selectedDelegate){
   `;
 }
 
-window.changeDelegateForVoter = function(voterNumber, selectEl){
+window.changeDelegateForVoter = async function(voterNumber, selectEl){
   const delegateName = safeText(selectEl.value);
 
-  assignDelegateToVoter(voterNumber, delegateName);
+  await assignDelegateToVoter(voterNumber, delegateName);
   selectedDelegateFilter = document.getElementById("agreedDelegateFilter")?.value || "all";
   buildAgreed();
 };
@@ -3522,8 +3553,6 @@ ${printContentHtml}
 async function init(){
   try{
     updateLoggedInPill();
-    loadDelegatesFromLocal();
-    loadFamilyGroups();
 
     setSyncStatus("جار تحميل الناخبين...");
     await loadVoters();
@@ -3531,6 +3560,11 @@ async function init(){
     setSyncStatus("جار تحميل الفرز...");
     await loadAssignments();
     await loadFinalDecisions();
+
+    setSyncStatus("جار تحميل العائلات والمندوبين...");
+    await loadFamilyGroups();
+    await loadDelegates();
+    await loadDelegateAssignments();
 
     fillFilters();
     fillAgreedFilters();
@@ -3897,7 +3931,7 @@ groupedBox.innerHTML = `
 }
 
 // إضافة العائلات للعائلة الأم
-window.assignSelectedFamilies = function(){
+window.assignSelectedFamilies = async function(){
 
   const parent = document.getElementById("parentFamilySelect").value;
 
@@ -3914,21 +3948,21 @@ window.assignSelectedFamilies = function(){
     return;
   }
 
-  selected.forEach(f => {
-    familyGroupMap[f] = parent;
-  });
+  for(const f of selected){
+    await saveFamilyGroupToFirebase(f, parent);
+  }
 
-  saveFamilyGroups();
+  await loadFamilyGroups();
   renderFamilyGroupsUI();
 };
 
 
 // إزالة عائلة
-window.removeFamilyFromGroup = function(family){
+window.removeFamilyFromGroup = async function(family){
 
-  delete familyGroupMap[family];
+  await removeFamilyGroupFromFirebase(family);
 
-  saveFamilyGroups();
+  await loadFamilyGroups();
   renderFamilyGroupsUI();
 };
 
