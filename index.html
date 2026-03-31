@@ -959,6 +959,26 @@ margin:8mm;
         </div>
       </div>
 
+<div class="card">
+  <div class="section-title-row">
+    <div class="section-title-left">
+      <h3 class="card-title" style="margin:0">📌 وضعنا مع العائلات المجمّعة</h3>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn btn-secondary" onclick="printReport('تقرير وضعنا مع العائلات','familyPositionWrap')">
+        🖨 طباعة سريعة
+      </button>
+      <button class="btn btn-light" onclick="exportTableToExcel('familyPositionTable','family_position_report')">
+        📊 Excel
+      </button>
+    </div>
+  </div>
+
+  <div class="summary-line" id="familyPositionSummary"></div>
+  <div id="familyPositionWrap"></div>
+</div>
+
       <div class="grid grid-2">
         <div class="card">
           <h3 class="card-title">💪 أقوى 20 عائلة داعمة</h3>
@@ -2696,6 +2716,7 @@ document.getElementById("dashboardCards").innerHTML = `
 
       buildAlerts(latest);
       buildFamilyStrength();
+      buildFamilyPositionReport();
     }
 
     function buildAlerts(latest){
@@ -2768,53 +2789,187 @@ document.getElementById("dashboardCards").innerHTML = `
       `;
     }
 
-    function buildFamilyStrength(){
-      const latest = getLatestAssignments();
-      const families = {};
+function buildFamilyStrength(){
+  const latest = getLatestAssignments();
+  const families = {};
 
-      latest.forEach(a => {
-        if(!a.family) return;
+  latest.forEach(a => {
+    if(!a.family) return;
 
-const familyName = getGroupedFamilyName(a.family);
+    const parentFamily = familyGroupMap[a.family];
 
-if(!families[familyName]){
-  families[familyName] = {
-    confirmed:0,
-    likely:0,
-    undecided:0,
-    total:0,
-    score:0
-  };
+    // فقط العائلات المربوطة ضمن تجميع
+    if(!parentFamily) return;
+
+    if(!families[parentFamily]){
+      families[parentFamily] = {
+        confirmed: 0,
+        likely: 0,
+        undecided: 0,
+        total: 0,
+        score: 0
+      };
+    }
+
+    families[parentFamily].total++;
+
+    if(a.status === "مؤكد"){
+      families[parentFamily].confirmed++;
+      families[parentFamily].score += 3;
+    }
+
+    if(a.status === "مرجّح"){
+      families[parentFamily].likely++;
+      families[parentFamily].score += 2;
+    }
+
+    if(a.status === "متردد"){
+      families[parentFamily].undecided++;
+      families[parentFamily].score += 1;
+    }
+  });
+
+  const rows = Object.entries(families).map(([family, data]) => ({
+    family,
+    avg: data.total ? data.score / data.total : 0,
+    ...data
+  }));
+
+  const strongest = [...rows].sort((a,b) => b.avg - a.avg).slice(0,20);
+  const weakest = [...rows].sort((a,b) => a.avg - b.avg).slice(0,20);
+
+  document.getElementById("strongFamilies").innerHTML = buildFamilyTable(strongest);
+  document.getElementById("weakFamilies").innerHTML = buildFamilyTable(weakest);
 }
 
-        families[familyName].total++;
 
-        if(a.status === "مؤكد"){
-          families[familyName].confirmed++;
-          families[familyName].score += 3;
-        }
-        if(a.status === "مرجّح"){
-          families[familyName].likely++;
-          families[familyName].score += 2;
-        }
-        if(a.status === "متردد"){
-          families[familyName].undecided++;
-          families[familyName].score += 1;
-        }
-      });
+function buildFamilyPositionReport(){
+  const latestMap = latestGlobalMap || {};
+  const grouped = {};
 
-      const rows = Object.entries(families).map(([family, data]) => ({
-        family,
-        avg: data.total ? data.score / data.total : 0,
-        ...data
-      }));
+  // تجهيز العائلات الأم فقط
+  Object.keys(familyGroupMap).forEach(family => {
+    const parent = familyGroupMap[family];
+    if(!parent) return;
 
-      const strongest = [...rows].sort((a,b) => b.avg - a.avg).slice(0,20);
-      const weakest = [...rows].sort((a,b) => a.avg - b.avg).slice(0,20);
-
-      document.getElementById("strongFamilies").innerHTML = buildFamilyTable(strongest);
-      document.getElementById("weakFamilies").innerHTML = buildFamilyTable(weakest);
+    if(!grouped[parent]){
+      grouped[parent] = {
+        total: 0,
+        withUs: 0,
+        againstUs: 0,
+        wontVote: 0,
+        unfilled: 0
+      };
     }
+  });
+
+  // نحسب كل الناخبين من جدول voters
+  voters.forEach(v => {
+    const parent = familyGroupMap[v.family];
+
+    // فقط العائلات المجمعة
+    if(!parent) return;
+
+    if(!grouped[parent]){
+      grouped[parent] = {
+        total: 0,
+        withUs: 0,
+        againstUs: 0,
+        wontVote: 0,
+        unfilled: 0
+      };
+    }
+
+    grouped[parent].total++;
+
+    const latest = latestMap[v.voterNumber];
+
+    if(!latest){
+      grouped[parent].unfilled++;
+      return;
+    }
+
+    const selectedList = safeText(latest.list);
+
+    if(selectedList === "4 - العهد والتنمية"){
+      grouped[parent].withUs++;
+    }else if(selectedList === "لن يصوّت"){
+      grouped[parent].wontVote++;
+    }else if(selectedList){
+      grouped[parent].againstUs++;
+    }else{
+      grouped[parent].unfilled++;
+    }
+  });
+
+  const rows = Object.entries(grouped)
+    .map(([family, data]) => ({
+      family,
+      ...data
+    }))
+    .sort((a,b) => b.withUs - a.withUs);
+
+  const wrap = document.getElementById("familyPositionWrap");
+  const summary = document.getElementById("familyPositionSummary");
+
+  if(!rows.length){
+    wrap.innerHTML = `<div class="empty">لا توجد عائلات مجمعة بعد</div>`;
+    summary.innerHTML = "";
+    return;
+  }
+
+  const totalFamilies = rows.length;
+  const totalVoters = rows.reduce((sum, r) => sum + r.total, 0);
+  const totalWithUs = rows.reduce((sum, r) => sum + r.withUs, 0);
+  const totalAgainstUs = rows.reduce((sum, r) => sum + r.againstUs, 0);
+  const totalWontVote = rows.reduce((sum, r) => sum + r.wontVote, 0);
+  const totalUnfilled = rows.reduce((sum, r) => sum + r.unfilled, 0);
+
+  summary.innerHTML = `
+    <span>عدد العائلات المجمعة: <b>${totalFamilies}</b></span>
+    <span>—</span>
+    <span>إجمالي الناخبين: <b>${totalVoters}</b></span>
+    <span>—</span>
+    <span>معنا: <b>${totalWithUs}</b></span>
+    <span>—</span>
+    <span>ضدنا: <b>${totalAgainstUs}</b></span>
+    <span>—</span>
+    <span>لن يصوّت: <b>${totalWontVote}</b></span>
+    <span>—</span>
+    <span>غير مفروز: <b>${totalUnfilled}</b></span>
+  `;
+
+  wrap.innerHTML = `
+    <div class="table-wrap">
+      <table id="familyPositionTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>العائلة المجمعة</th>
+            <th>إجمالي العائلة</th>
+            <th>معنا</th>
+            <th>ضدنا</th>
+            <th>لن يصوّت</th>
+            <th>غير مفروز</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td><b>${r.family}</b></td>
+              <td>${r.total}</td>
+              <td>${r.withUs}</td>
+              <td>${r.againstUs}</td>
+              <td>${r.wontVote}</td>
+              <td>${r.unfilled}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
 
 
 function getActiveFinalDecision(voterNumber){
