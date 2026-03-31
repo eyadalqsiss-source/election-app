@@ -1337,7 +1337,7 @@ let familyGroupMap = {};
 
 
 function getGroupedFamilyName(family){
-  return familyGroupMap[family] || family;
+  return familyGroupMap[family] || "غير مجمعة";
 }
 
 // ==========================
@@ -1435,7 +1435,12 @@ async function removeDelegateAssignmentFromFirebase(voterNumber){
 
 function fillAgreedFilters(){
 
-const families = [...new Set(voters.map(v=>v.family).filter(Boolean).sort(sortArabicText))];
+const families = [...new Set(
+  voters.map(v => familyGroupMap[v.family] || "غير مجمعة")
+    .filter(Boolean)
+    .sort(sortArabicText)
+)];
+
 const centers = [...new Set(voters.map(v=>v.center).filter(Boolean).sort(sortArabicText))];
 const lists = ["لن يصوّت", ...Object.keys(LISTS)];
 
@@ -3124,13 +3129,14 @@ if(seen.has(activeFinal.voterNumber)) return;
 seen.add(activeFinal.voterNumber);
 
 rows.push({
-voterNumber: activeFinal.voterNumber,
-name: activeFinal.name,
-family: activeFinal.family,
-center: activeFinal.center,
-list: activeFinal.list,
-candidate: activeFinal.candidate,
-notes: activeFinal.notes || ""
+  voterNumber: activeFinal.voterNumber,
+  name: activeFinal.name,
+  family: activeFinal.family,
+  parentFamily: familyGroupMap[activeFinal.family] || "غير مجمعة",
+  center: activeFinal.center,
+  list: activeFinal.list,
+  candidate: activeFinal.candidate,
+  notes: activeFinal.notes || ""
 });
 
 });
@@ -3157,13 +3163,14 @@ const uniqueLists = [...new Set(lists)];
 if(uniqueLists.length === 1){
 
 rows.push({
-voterNumber,
-name: entries[0].name,
-family: entries[0].family,
-center: entries[0].center,
-list: entries[0].list,
-candidate: entries[0].candidate,
-notes: `اتفاق بين ${entries.map(e => e.user).join(" و ")}`
+  voterNumber,
+  name: entries[0].name,
+  family: entries[0].family,
+  parentFamily: familyGroupMap[entries[0].family] || "غير مجمعة",
+  center: entries[0].center,
+  list: entries[0].list,
+  candidate: entries[0].candidate,
+  notes: `اتفاق بين ${entries.map(e => e.user).join(" و ")}`
 });
 
 }
@@ -3283,7 +3290,7 @@ document.getElementById("agreedDelegateFilter")?.value || "all";
     }
 
 if(familyFilter.length > 0){
-  if(!familyFilter.includes(r.family)){
+  if(!familyFilter.includes(r.parentFamily || "غير مجمعة")){
     return false;
   }
 }
@@ -3350,7 +3357,7 @@ ${rows.map((r,i) => {
     <tr>
       <td>${i+1}</td>
       <td>${r.name || "-"}</td>
-      <td>${r.family || "-"}</td>
+      <td>${r.parentFamily || "غير مجمعة"} / ${r.family || "-"}</td>
       <td>${r.center || "-"}</td>
       <td>${r.list || "-"}</td>
       <td>${r.candidate || "-"}</td>
@@ -3422,6 +3429,7 @@ window.printReport = function(title, contentId){
   const contentEl = document.getElementById(contentId);
 
 let printContentHtml = contentEl ? contentEl.innerHTML : "";
+let votersCount = 0;
 
 if(contentId === "agreedBox"){
   const rows = buildAgreedData().filter(r => {
@@ -3442,6 +3450,7 @@ if(contentId === "agreedBox"){
 
     const name = (r.name || "").toLowerCase();
     const family = (r.family || "").toLowerCase();
+    const parentFamily = (r.parentFamily || "غير مجمعة").toLowerCase();
     const center = (r.center || "").toLowerCase();
     const voterNumber = (r.voterNumber || "").toString().toLowerCase();
 
@@ -3449,6 +3458,7 @@ if(contentId === "agreedBox"){
       if(
         !name.includes(search) &&
         !family.includes(search) &&
+        !parentFamily.includes(search) &&
         !center.includes(search) &&
         !voterNumber.includes(search)
       ){
@@ -3456,8 +3466,10 @@ if(contentId === "agreedBox"){
       }
     }
 
-    if(familyFilter.length > 0 && !familyFilter.includes(r.family)){
-      return false;
+    if(familyFilter.length > 0){
+      if(!familyFilter.includes(r.parentFamily || "غير مجمعة")){
+        return false;
+      }
     }
 
     if(centerFilter !== "all" && r.center !== centerFilter){
@@ -3477,6 +3489,8 @@ if(contentId === "agreedBox"){
     return true;
   });
 
+  votersCount = rows.length;
+
   printContentHtml = `
     <div class="table-wrap">
       <table id="printAgreedTable">
@@ -3484,8 +3498,8 @@ if(contentId === "agreedBox"){
           <tr>
             <th>#</th>
             <th>اسم الناخب</th>
-            <th>العائلة</th>
-            <th>المركز</th>
+            <th>العائلة / العائلة الأم</th>
+            <th>مركز الاقتراع</th>
             <th>المندوب المسؤول</th>
           </tr>
         </thead>
@@ -3494,7 +3508,7 @@ if(contentId === "agreedBox"){
             <tr>
               <td>${i + 1}</td>
               <td>${r.name || "-"}</td>
-              <td>${r.family || "-"}</td>
+              <td>${r.family || "-"} / ${r.parentFamily || "غير مجمعة"}</td>
               <td>${r.center || "-"}</td>
               <td>${getDelegateForVoter(r.voterNumber) || "-"}</td>
             </tr>
@@ -3504,9 +3518,11 @@ if(contentId === "agreedBox"){
     </div>
   `;
 }
-let votersCount = 0;
 
-if(contentEl){
+
+if(contentId === "agreedBox"){
+  // تم احتساب العدد من rows فوق
+}else if(contentEl){
   const rows = contentEl.querySelectorAll("tbody tr");
   votersCount = rows.length;
 }
