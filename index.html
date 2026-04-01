@@ -987,6 +987,59 @@ margin:8mm;
   border-radius:14px;
 }
 
+/* فلتر العائلة والقوائم في المتوافق عليهم */
+#agreedSection .filters{
+  align-items:flex-start !important;
+}
+
+#agreedFamilyFilterWrap,
+#agreedListFilterWrap{
+  min-width:220px;
+  width:220px;
+  flex:0 0 220px;
+}
+
+#agreedFamilyFilterBtn,
+#agreedListFilterBtn{
+  min-height:48px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#agreedFamilyFilterDropdown,
+#agreedListFilterDropdown{
+  min-width:320px;
+  width:320px;
+  max-width:420px;
+  right:0;
+  left:auto;
+  max-height:320px;
+  overflow:auto;
+  z-index:500;
+}
+
+#agreedFamilyFilterDropdown .multi-filter-option,
+#agreedListFilterDropdown .multi-filter-option{
+  display:grid;
+  grid-template-columns:22px 1fr;
+  align-items:start;
+  gap:10px;
+  padding:6px 4px;
+}
+
+#agreedFamilyFilterDropdown .multi-filter-option span,
+#agreedListFilterDropdown .multi-filter-option span{
+  white-space:normal;
+  line-height:1.5;
+  word-break:break-word;
+}
+
+#agreedFamilyFilterDropdown .multi-filter-option input,
+#agreedListFilterDropdown .multi-filter-option input{
+  margin-top:2px;
+}
+
   </style>
 </head>
 <body>
@@ -1290,7 +1343,7 @@ class="input"
 placeholder="بحث بالاسم أو العائلة أو مركز الاقتراع"
 />
 
-<div class="multi-filter" id="agreedFamilyFilterWrap">
+<div class="multi-filter agreed-filter-wide" id="agreedFamilyFilterWrap">
   <button type="button" class="multi-filter-btn" id="agreedFamilyFilterBtn">
     كل العائلات
   </button>
@@ -1309,9 +1362,20 @@ placeholder="بحث بالاسم أو العائلة أو مركز الاقتر�
 <option value="all">كل المراكز</option>
 </select>
 
-<select id="agreedListFilter" class="input">
-<option value="all">كل القوائم</option>
-</select>
+<div class="multi-filter agreed-filter-wide" id="agreedListFilterWrap">
+  <button type="button" class="multi-filter-btn" id="agreedListFilterBtn">
+    كل القوائم
+  </button>
+
+  <div class="multi-filter-dropdown hidden" id="agreedListFilterDropdown">
+    <div class="multi-filter-actions">
+      <button type="button" class="btn btn-light btn-sm" onclick="selectAllAgreedLists()">الكل</button>
+      <button type="button" class="btn btn-light btn-sm" onclick="clearAllAgreedLists()">إلغاء الكل</button>
+    </div>
+
+    <div id="agreedListFilterOptions" class="multi-filter-options"></div>
+  </div>
+</div>
 
 <select id="agreedDelegateFilter" class="input">
 <option value="all">كل المندوبين</option>
@@ -1466,6 +1530,7 @@ import {
     let selectedChildFamily = "الكل";
     
     let selectedAgreedFamilies = [];
+   let selectedAgreedLists = [];
 
     let delegatesList = [];
     let delegateAssignmentsMap = {};
@@ -1585,19 +1650,14 @@ const centers = [...new Set(voters.map(v=>v.center).filter(Boolean).sort(sortAra
 const lists = ["لن يصوّت", ...Object.keys(LISTS)];
 
 const centerSelect = document.getElementById("agreedCenterFilter");
-const listSelect = document.getElementById("agreedListFilter");
 
 buildAgreedFamilyFilterOptions(families);
+buildAgreedListFilterOptions(lists);
 
 centerSelect.innerHTML = '<option value="all">كل المراكز</option>';
-listSelect.innerHTML = '<option value="all">كل القوائم</option>';
 
 centers.forEach(c=>{
   centerSelect.innerHTML += `<option value="${c}">${c}</option>`;
-});
-
-lists.forEach(l=>{
-  listSelect.innerHTML += `<option value="${l}">${l}</option>`;
 });
 
 }
@@ -3362,6 +3422,57 @@ function buildAgreedFamilyFilterOptions(families){
   updateAgreedFamilyFilterButton();
 }
 
+function buildAgreedListFilterOptions(lists){
+  const box = document.getElementById("agreedListFilterOptions");
+  if(!box) return;
+
+  box.innerHTML = lists.map(listName => `
+    <label class="multi-filter-option">
+      <input type="checkbox" class="agreed-list-checkbox" value="${listName}" onchange="toggleAgreedListFilter()">
+      <span>${listName}</span>
+    </label>
+  `).join("");
+
+  selectedAgreedLists = [];
+  updateAgreedListFilterButton();
+}
+
+function updateAgreedListFilterButton(){
+  const btn = document.getElementById("agreedListFilterBtn");
+  if(!btn) return;
+
+  if(selectedAgreedLists.length === 0){
+    btn.textContent = "كل القوائم";
+  }else if(selectedAgreedLists.length <= 2){
+    btn.textContent = selectedAgreedLists.join("، ");
+  }else{
+    btn.textContent = selectedAgreedLists.slice(0,2).join("، ") + ` +${selectedAgreedLists.length - 2}`;
+  }
+}
+
+window.toggleAgreedListFilter = function(){
+  selectedAgreedLists = Array.from(document.querySelectorAll(".agreed-list-checkbox:checked"))
+    .map(cb => cb.value);
+
+  updateAgreedListFilterButton();
+  buildAgreed();
+};
+
+window.selectAllAgreedLists = function(){
+  document.querySelectorAll(".agreed-list-checkbox").forEach(cb => cb.checked = true);
+  selectedAgreedLists = Array.from(document.querySelectorAll(".agreed-list-checkbox")).map(cb => cb.value);
+  updateAgreedListFilterButton();
+  buildAgreed();
+};
+
+window.clearAllAgreedLists = function(){
+  document.querySelectorAll(".agreed-list-checkbox").forEach(cb => cb.checked = false);
+  selectedAgreedLists = [];
+  updateAgreedListFilterButton();
+  buildAgreed();
+};
+
+
 function updateAgreedFamilyFilterButton(){
   const btn = document.getElementById("agreedFamilyFilterBtn");
 
@@ -3427,8 +3538,7 @@ function buildAgreed(){
   const centerFilter =
   document.getElementById("agreedCenterFilter")?.value || "all";
 
-  const listFilter =
-  document.getElementById("agreedListFilter")?.value || "all";
+  const listFilter = selectedAgreedLists;
 
 const delegateFilter =
 document.getElementById("agreedDelegateFilter")?.value || "all";
@@ -3467,11 +3577,11 @@ if(familyFilter.length > 0){
     }
 
     // فلتر القائمة
-    if(listFilter !== "all"){
-      if(r.list !== listFilter){
-        return false;
-      }
-    }
+    if(listFilter.length > 0){
+  if(!listFilter.includes(r.list)){
+    return false;
+  }
+}
 
 const assignedDelegate = getDelegateForVoter(r.voterNumber);
 
@@ -3608,8 +3718,7 @@ if(contentId === "agreedBox"){
     const centerFilter =
       document.getElementById("agreedCenterFilter")?.value || "all";
 
-    const listFilter =
-      document.getElementById("agreedListFilter")?.value || "all";
+    const listFilter = selectedAgreedLists;
 
     const delegateFilter =
       document.getElementById("agreedDelegateFilter")?.value || "all";
@@ -3642,9 +3751,9 @@ if(contentId === "agreedBox"){
       return false;
     }
 
-    if(listFilter !== "all" && r.list !== listFilter){
-      return false;
-    }
+    if(listFilter.length > 0 && !listFilter.includes(r.list)){
+  return false;
+}
 
     const assignedDelegate = getDelegateForVoter(r.voterNumber);
 
@@ -3973,10 +4082,19 @@ document
 .getElementById("agreedCenterFilter")
 .addEventListener("change", buildAgreed);
 
-document
-.getElementById("agreedListFilter")
-.addEventListener("change", buildAgreed);
+document.getElementById("agreedListFilterBtn").addEventListener("click", function(e){
+  e.stopPropagation();
+  document.getElementById("agreedListFilterDropdown").classList.toggle("hidden");
+});
 
+document.addEventListener("click", function(e){
+  const wrap = document.getElementById("agreedListFilterWrap");
+  const dropdown = document.getElementById("agreedListFilterDropdown");
+
+  if(wrap && !wrap.contains(e.target)){
+    dropdown.classList.add("hidden");
+  }
+});
 document
 .getElementById("agreedDelegateFilter")
 .addEventListener("change", function(){
