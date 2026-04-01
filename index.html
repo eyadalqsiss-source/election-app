@@ -844,6 +844,149 @@ margin:8mm;
   padding:22px;
 }
 
+.clean-table-wrap{
+  overflow:auto;
+  border:1px solid #e6edf3;
+  border-radius:20px;
+  background:linear-gradient(180deg,#ffffff 0%, #fbfdff 100%);
+  box-shadow:0 10px 30px rgba(15,76,138,.06);
+}
+
+.clean-table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  font-size:15px;
+  background:transparent;
+  table-layout:fixed;
+}
+
+
+.clean-table thead th{
+  background:linear-gradient(180deg,#f8fbff 0%, #eef5fb 100%);
+  color:var(--blue);
+  font-weight:800;
+  padding:15px 14px;
+  border-bottom:1px solid #dfe8f0;
+  white-space:nowrap;
+  position:sticky;
+  top:0;
+  z-index:2;
+}
+
+.clean-table thead th:first-child{
+  border-top-right-radius:18px;
+}
+
+.clean-table thead th:last-child{
+  border-top-left-radius:18px;
+}
+
+.clean-table tbody td{
+  padding:14px;
+  border-bottom:1px solid #eef2f6;
+  color:#1f2937;
+  vertical-align:middle;
+  background:#fff;
+}
+
+.clean-table tbody tr:nth-child(even) td{
+  background:#fcfdff;
+}
+
+.clean-table tbody tr:hover td{
+  background:#f4f9ff;
+}
+
+.clean-table tbody tr:last-child td{
+  border-bottom:none;
+}
+
+.clean-table .num-cell{
+  width:72px;
+  text-align:center;
+  color:#64748b;
+  font-weight:700;
+}
+
+.clean-table .family-cell{
+  font-weight:700;
+  color:#0f172a;
+  white-space:normal;
+}
+
+.clean-table .count-cell{
+  text-align:center;
+  font-weight:800;
+  min-width:90px;
+  color:#111827;
+}
+
+.clean-table th,
+.clean-table td{
+  text-align:center;
+  vertical-align:middle;
+}
+
+.clean-table th.family-cell,
+.clean-table td.family-cell{
+  text-align:right;
+}
+
+.clean-table th.num-cell,
+.clean-table td.num-cell{
+  text-align:center;
+}
+
+.clean-table .total-row td{
+  background:linear-gradient(180deg,#eefaf2 0%, #e5f7eb 100%) !important;
+  color:#14532d;
+  font-weight:800;
+  border-top:2px solid #b8e0c5;
+}
+
+.family-list-toolbar{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:end;
+  margin:14px 0 10px;
+}
+
+.family-list-toolbar .field{
+  min-width:260px;
+  max-width:360px;
+  flex:1;
+}
+
+.report-filter-box{
+  background:#f8fbff;
+  border:1px solid #e3ebf3;
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:14px;
+}
+
+.report-filter-box .field label{
+  color:var(--blue);
+  font-size:13px;
+}
+
+.section-subtitle{
+  color:var(--muted);
+  font-size:14px;
+  margin:6px 0 0;
+}
+
+.soft-empty{
+  text-align:center;
+  padding:20px;
+  color:var(--muted);
+  background:#fafafa;
+  border:1px dashed var(--border);
+  border-radius:14px;
+}
+
   </style>
 </head>
 <body>
@@ -977,19 +1120,23 @@ margin:8mm;
 
   <div class="summary-line" id="familyPositionSummary"></div>
   <div id="familyPositionWrap"></div>
+
+  <hr style="border:none;border-top:1px solid var(--border);margin:18px 0;">
+
+  <h4 style="margin:0 0 10px;color:var(--blue)">توزيع القائمة حسب العائلات</h4>
+
+<div class="report-filter-box">
+  <div class="field">
+    <label for="familyListFilter">اختر القائمة</label>
+    <select id="familyListFilter" onchange="buildSelectedListFamiliesReport()"></select>
+  </div>
+  <div class="section-subtitle">يعرض عدد الناخبين في القائمة المختارة داخل كل عائلة مجمّعة</div>
 </div>
 
-      <div class="grid grid-2">
-        <div class="card">
-          <h3 class="card-title">💪 أقوى 20 عائلة داعمة</h3>
-          <div id="strongFamilies"></div>
-        </div>
+  <div class="summary-line" id="selectedListFamilySummary"></div>
+  <div id="selectedListFamilyWrap"></div>
+</div>
 
-        <div class="card">
-          <h3 class="card-title">⚠ أضعف 20 عائلة</h3>
-          <div id="weakFamilies"></div>
-        </div>
-      </div>
     </div>
 
     <!-- Search -->
@@ -1461,6 +1608,110 @@ lists.forEach(l=>{
 });
 
 }
+
+function fillFamilyListFilter(){
+  const sel = document.getElementById("familyListFilter");
+  if(!sel) return;
+
+  const options = [
+    `<option value="">اختر القائمة</option>`,
+    `<option value="لن يصوّت">لن يصوّت</option>`,
+    ...Object.keys(LISTS).map(listName => `<option value="${listName}">${listName}</option>`)
+  ];
+
+  const currentValue = sel.value || "";
+  sel.innerHTML = options.join("");
+
+  if(currentValue){
+    sel.value = currentValue;
+  }
+}
+
+window.buildSelectedListFamiliesReport = function(){
+  const selectEl = document.getElementById("familyListFilter");
+  const wrap = document.getElementById("selectedListFamilyWrap");
+  const summary = document.getElementById("selectedListFamilySummary");
+
+  if(!selectEl || !wrap || !summary) return;
+
+  const selectedList = safeText(selectEl.value);
+
+  if(!selectedList){
+    summary.innerHTML = "";
+    wrap.innerHTML = `<div class="soft-empty">اختر القائمة لعرض عددها داخل كل عائلة مجمّعة</div>`;
+    return;
+  }
+
+  const grouped = {};
+
+  Object.keys(familyGroupMap).forEach(family => {
+    const parent = familyGroupMap[family];
+    if(!parent) return;
+
+    if(!grouped[parent]){
+      grouped[parent] = 0;
+    }
+  });
+
+  voters.forEach(v => {
+    const parent = familyGroupMap[v.family];
+    if(!parent) return;
+
+    const latest = latestGlobalMap[v.voterNumber];
+    if(!latest) return;
+
+    if(safeText(latest.list) === selectedList){
+      grouped[parent] = (grouped[parent] || 0) + 1;
+    }
+  });
+
+const rows = Object.entries(grouped)
+  .map(([family, count]) => ({ family, count }))
+  .filter(r => r.count > 0)
+  .sort((a,b) => {
+    if(b.count !== a.count) return b.count - a.count;
+    return sortArabicText(a.family, b.family);
+  });
+
+  const total = rows.reduce((sum, r) => sum + r.count, 0);
+  const nonZeroFamilies = rows.filter(r => r.count > 0).length;
+
+  summary.innerHTML = `
+    <span>القائمة المختارة: <b>${selectedList}</b></span>
+    <span>—</span>
+    <span>عدد العائلات الظاهرة: <b>${nonZeroFamilies}</b></span>
+    <span>—</span>
+    <span>المجموع الكلي: <b>${total}</b></span>
+  `;
+
+  wrap.innerHTML = `
+    <div class="clean-table-wrap">
+      <table class="clean-table" id="selectedListFamiliesTable">
+        <thead>
+  <tr>
+    <th class="num-cell" style="width:70px">#</th>
+    <th class="family-cell" style="width:240px">العائلة</th>
+    <th style="width:120px">العدد</th>
+  </tr>
+</thead>
+        <tbody>
+          ${rows.map((r, i) => `
+            <tr>
+              <td class="num-cell">${i + 1}</td>
+              <td class="family-cell">${r.family}</td>
+              <td class="count-cell">${r.count}</td>
+            </tr>
+          `).join("")}
+          <tr class="total-row">
+            <td class="num-cell">—</td>
+            <td class="family-cell">المجموع الكلي</td>
+            <td class="count-cell">${total}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+};
 
     function safeText(v){
       return (v ?? "").toString().trim();
@@ -2719,9 +2970,10 @@ document.getElementById("dashboardCards").innerHTML = `
         </div>
       `;
 
-      buildAlerts(latest);
-      buildFamilyStrength();
-      buildFamilyPositionReport();
+buildAlerts(latest);
+buildFamilyPositionReport();
+fillFamilyListFilter();
+buildSelectedListFamiliesReport();
     }
 
     function buildAlerts(latest){
@@ -2761,91 +3013,6 @@ document.getElementById("dashboardCards").innerHTML = `
       `).join("");
     }
 
-    function buildFamilyTable(rows){
-      if(!rows.length){
-        return `<div class="empty">لا توجد بيانات بعد</div>`;
-      }
-
-      return `
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>العائلة</th>
-                <th>مؤكد</th>
-                <th>مرجّح</th>
-                <th>متردد</th>
-                <th>المعدل</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows.map(r => `
-                <tr>
-                  <td>${r.family}</td>
-                  <td>${r.confirmed}</td>
-                  <td>${r.likely}</td>
-                  <td>${r.undecided}</td>
-                  <td><b>${r.avg.toFixed(2)}</b></td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
-
-function buildFamilyStrength(){
-  const latest = getLatestAssignments();
-  const families = {};
-
-  latest.forEach(a => {
-    if(!a.family) return;
-
-    const parentFamily = familyGroupMap[a.family];
-
-    // فقط العائلات المربوطة ضمن تجميع
-    if(!parentFamily) return;
-
-    if(!families[parentFamily]){
-      families[parentFamily] = {
-        confirmed: 0,
-        likely: 0,
-        undecided: 0,
-        total: 0,
-        score: 0
-      };
-    }
-
-    families[parentFamily].total++;
-
-    if(a.status === "مؤكد"){
-      families[parentFamily].confirmed++;
-      families[parentFamily].score += 3;
-    }
-
-    if(a.status === "مرجّح"){
-      families[parentFamily].likely++;
-      families[parentFamily].score += 2;
-    }
-
-    if(a.status === "متردد"){
-      families[parentFamily].undecided++;
-      families[parentFamily].score += 1;
-    }
-  });
-
-  const rows = Object.entries(families).map(([family, data]) => ({
-    family,
-    avg: data.total ? data.score / data.total : 0,
-    ...data
-  }));
-
-  const strongest = [...rows].sort((a,b) => b.avg - a.avg).slice(0,20);
-  const weakest = [...rows].sort((a,b) => a.avg - b.avg).slice(0,20);
-
-  document.getElementById("strongFamilies").innerHTML = buildFamilyTable(strongest);
-  document.getElementById("weakFamilies").innerHTML = buildFamilyTable(weakest);
-}
 
 
 function buildFamilyPositionReport(){
@@ -2944,33 +3111,42 @@ function buildFamilyPositionReport(){
     <span>غير مفروز: <b>${totalUnfilled}</b></span>
   `;
 
-  wrap.innerHTML = `
-    <div class="table-wrap">
-      <table id="familyPositionTable">
+wrap.innerHTML = `
+  <div class="clean-table-wrap">
+    <table id="familyPositionTable" class="clean-table">
         <thead>
-          <tr>
-            <th>#</th>
-            <th>العائلة المجمعة</th>
-            <th>إجمالي العائلة</th>
-            <th>معنا</th>
-            <th>ضدنا</th>
-            <th>لن يصوّت</th>
-            <th>غير مفروز</th>
-          </tr>
-        </thead>
+  <tr>
+    <th class="num-cell" style="width:70px">#</th>
+    <th class="family-cell" style="width:220px">العائلة المجمعة</th>
+    <th style="width:130px">إجمالي العائلة</th>
+    <th style="width:110px">معنا</th>
+    <th style="width:110px">ضدنا</th>
+    <th style="width:110px">لن يصوّت</th>
+    <th style="width:110px">غير مفروز</th>
+  </tr>
+</thead>
         <tbody>
-          ${rows.map((r, i) => `
-            <tr>
-              <td>${i + 1}</td>
-              <td><b>${r.family}</b></td>
-              <td>${r.total}</td>
-              <td>${r.withUs}</td>
-              <td>${r.againstUs}</td>
-              <td>${r.wontVote}</td>
-              <td>${r.unfilled}</td>
-            </tr>
-          `).join("")}
-        </tbody>
+  ${rows.map((r, i) => `
+    <tr>
+      <td class="num-cell">${i + 1}</td>
+      <td class="family-cell"><b>${r.family}</b></td>
+      <td class="count-cell">${r.total}</td>
+      <td class="count-cell">${r.withUs}</td>
+      <td class="count-cell">${r.againstUs}</td>
+      <td class="count-cell">${r.wontVote}</td>
+      <td class="count-cell">${r.unfilled}</td>
+    </tr>
+  `).join("")}
+  <tr class="total-row">
+    <td class="num-cell">—</td>
+    <td class="family-cell">المجموع الكلي</td>
+    <td class="count-cell">${totalVoters}</td>
+    <td class="count-cell">${totalWithUs}</td>
+    <td class="count-cell">${totalAgainstUs}</td>
+    <td class="count-cell">${totalWontVote}</td>
+    <td class="count-cell">${totalUnfilled}</td>
+  </tr>
+</tbody>
       </table>
     </div>
   `;
@@ -3384,6 +3560,8 @@ setSyncStatus("جار تحديث البيانات...");
 await loadAssignments();
 await loadFinalDecisions();
 
+fillFamilyListFilter();
+
 buildDashboard();
 buildDifferences();
 buildAgreed();
@@ -3740,6 +3918,7 @@ async function init(){
     fillFilters();
     fillAgreedFilters();
     fillDelegateFilter();
+    fillFamilyListFilter();
     buildDashboard();
     buildDifferences();
     buildAgreed();
