@@ -1158,23 +1158,15 @@ margin:8mm;
             <input id="searchInput" placeholder="مثال: جورج / قمصية / 0537 / مدرسة بنات بيت ساحور الثانوية" />
           </div>
 
-          <div class="field">
-            <label>العائلة</label>
-            <div class="multi-filter" id="familyFilterWrap">
-  <button type="button" class="multi-filter-btn" id="familyFilterBtn">
-    الكل
-  </button>
-
-  <div class="multi-filter-dropdown hidden" id="familyFilterDropdown">
-    <div class="multi-filter-actions">
-      <button type="button" class="btn btn-light btn-sm" onclick="selectAllFamilies()">الكل</button>
-      <button type="button" class="btn btn-light btn-sm" onclick="clearAllFamilies()">إلغاء الكل</button>
-    </div>
-
-    <div id="familyFilterOptions" class="multi-filter-options"></div>
-  </div>
+<div class="field">
+  <label>العائلة الأم</label>
+  <select id="parentFamilyFilter"></select>
 </div>
-          </div>
+
+<div class="field">
+  <label>العائلة الفرعية</label>
+  <select id="childFamilyFilter"></select>
+</div>
 
           <div class="field">
             <label>المركز</label>
@@ -1470,7 +1462,8 @@ import {
     let currentSearchPage = 1;
     let currentSearchResults = [];
 
-    let selectedFamilies = [];
+    let selectedParentFamily = "الكل";
+    let selectedChildFamily = "الكل";
     
     let selectedAgreedFamilies = [];
 
@@ -2019,80 +2012,67 @@ finalDecisions = arr;
     }
 
 function fillFilters(){
-
   const centerSel = document.getElementById("centerFilter");
   const statusSel = document.getElementById("statusFilter");
+  const parentSel = document.getElementById("parentFamilyFilter");
+  const childSel = document.getElementById("childFamilyFilter");
 
-const families = [...new Set(
-  voters.map(v => getGroupedFamilyName(v.family))
-  .filter(Boolean)
-  .sort(sortArabicText)
-)];
+  const parentFamilies = [
+    "الكل",
+    ...new Set(Object.values(familyGroupMap).filter(Boolean))
+  ].sort(sortArabicText);
 
   const centers = ["الكل", ...new Set(
     voters.map(v => v.center)
-    .filter(Boolean)
-    .sort(sortArabicText)
+      .filter(Boolean)
+      .sort(sortArabicText)
   )];
 
   const statuses = ["الكل", "مؤكد", "مرجّح", "متردد", "غير مفروز"];
 
-  // 👇 هذا أهم سطر (الجديد)
-  buildFamilyFilterOptions(families);
+  parentSel.innerHTML = parentFamilies
+    .map(f => `<option value="${f}">${f}</option>`)
+    .join("");
+
+  if(!parentFamilies.includes(selectedParentFamily)){
+    selectedParentFamily = "الكل";
+  }
+
+  parentSel.value = selectedParentFamily;
+
+  fillChildFamilyFilter();
 
   centerSel.innerHTML = centers.map(c => `<option value="${c}">${c}</option>`).join("");
   statusSel.innerHTML = statuses.map(s => `<option value="${s}">${s}</option>`).join("");
 }
 
-function buildFamilyFilterOptions(families){
-  const box = document.getElementById("familyFilterOptions");
-  if(!box) return;
+function fillChildFamilyFilter(){
+  const childSel = document.getElementById("childFamilyFilter");
+  if(!childSel) return;
 
-  box.innerHTML = families.map(f => `
-    <label class="multi-filter-option">
-      <input type="checkbox" class="family-checkbox" value="${f}" onchange="toggleFamilyFilter()">
-      <span>${f}</span>
-    </label>
-  `).join("");
+  let families = [];
 
-  selectedFamilies = [];
-  updateFamilyFilterButton();
-}
-
-function updateFamilyFilterButton(){
-  const btn = document.getElementById("familyFilterBtn");
-  if(!btn) return;
-
-  if(selectedFamilies.length === 0){
-    btn.textContent = "الكل";
-  }else if(selectedFamilies.length <= 2){
-    btn.textContent = selectedFamilies.join("، ");
+  if(selectedParentFamily === "الكل"){
+    families = [...new Set(voters.map(v => v.family).filter(Boolean))].sort(sortArabicText);
   }else{
-    btn.textContent = selectedFamilies.slice(0,2).join("، ") + ` +${selectedFamilies.length - 2}`;
+    families = Object.keys(familyGroupMap)
+      .filter(f => familyGroupMap[f] === selectedParentFamily)
+      .sort(sortArabicText);
   }
+
+  childSel.innerHTML = [
+    `<option value="الكل">الكل</option>`,
+    ...families.map(f => `<option value="${f}">${f}</option>`)
+  ].join("");
+
+  if(!families.includes(selectedChildFamily)){
+    selectedChildFamily = "الكل";
+  }
+
+  childSel.value = selectedChildFamily;
 }
 
-window.toggleFamilyFilter = function(){
-  selectedFamilies = Array.from(document.querySelectorAll(".family-checkbox:checked"))
-    .map(cb => cb.value);
 
-  updateFamilyFilterButton();
-  searchVoters(1);
-};
-
-window.selectAllFamilies = function(){
-  document.querySelectorAll(".family-checkbox").forEach(cb => cb.checked = true);
-  selectedFamilies = Array.from(document.querySelectorAll(".family-checkbox")).map(cb => cb.value);
-  updateFamilyFilterButton();
-  searchVoters(1);
-};
-
-window.clearAllFamilies = function(){
-  document.querySelectorAll(".family-checkbox").forEach(cb => cb.checked = false);
-  selectedFamilies = [];
-  updateFamilyFilterButton();
-  searchVoters(1);
-};
 
     function candidateOptionsHtml(selectedList, selectedCandidate){
       const candidates = LISTS[selectedList] || [];
@@ -2110,7 +2090,11 @@ window.clearAllFamilies = function(){
 
     window.resetFilters = function(){
       document.getElementById("searchInput").value = "";
-      clearAllFamilies();
+      selectedParentFamily = "الكل";
+      selectedChildFamily = "الكل";
+      document.getElementById("parentFamilyFilter").value = "الكل";
+      fillChildFamilyFilter();
+      document.getElementById("childFamilyFilter").value = "الكل";
       document.getElementById("centerFilter").value = "الكل";
       document.getElementById("statusFilter").value = "الكل";
       document.getElementById("limitFilter").value = "50";
@@ -2127,7 +2111,8 @@ window.clearAllFamilies = function(){
 function filterVoters(){
 
 const q = safeText(document.getElementById("searchInput").value).toLowerCase().trim();
-const familyFilter = selectedFamilies;
+const parentFamilyFilter = document.getElementById("parentFamilyFilter")?.value || "الكل";
+const childFamilyFilter = document.getElementById("childFamilyFilter")?.value || "الكل";
 const centerFilter = document.getElementById("centerFilter").value;
 const statusFilter = document.getElementById("statusFilter").value;
 
@@ -2153,8 +2138,11 @@ phone.includes(q);
 
 const groupedFamily = getGroupedFamilyName(v.family);
 
-const matchFamily =
-familyFilter.length === 0 || familyFilter.includes(groupedFamily);
+const matchParentFamily =
+  parentFamilyFilter === "الكل" || groupedFamily === parentFamilyFilter;
+
+const matchChildFamily =
+  childFamilyFilter === "الكل" || v.family === childFamilyFilter;
 
 const matchCenter =
 centerFilter === "الكل" || v.center === centerFilter;
@@ -2164,7 +2152,7 @@ let voterStatus = latest?.status || "غير مفروز";
 const matchStatus =
 statusFilter === "الكل" || voterStatus === statusFilter;
 
-return matchSearch && matchFamily && matchCenter && matchStatus;
+return matchSearch && matchParentFamily && matchChildFamily && matchCenter && matchStatus;
 
 });
 
@@ -3949,19 +3937,18 @@ async function init(){
     });
     document.getElementById("centerFilter").addEventListener("change", () => searchVoters(1));
     document.getElementById("statusFilter").addEventListener("change", () => searchVoters(1));
-document.getElementById("familyFilterBtn").addEventListener("click", function(e){
-  e.stopPropagation();
-  document.getElementById("familyFilterDropdown").classList.toggle("hidden");
+document.getElementById("parentFamilyFilter").addEventListener("change", function(){
+  selectedParentFamily = this.value || "الكل";
+  selectedChildFamily = "الكل";
+  fillChildFamilyFilter();
+  searchVoters(1);
 });
 
-document.addEventListener("click", function(e){
-  const wrap = document.getElementById("familyFilterWrap");
-  const dropdown = document.getElementById("familyFilterDropdown");
-
-  if(wrap && !wrap.contains(e.target)){
-    dropdown.classList.add("hidden");
-  }
+document.getElementById("childFamilyFilter").addEventListener("change", function(){
+  selectedChildFamily = this.value || "الكل";
+  searchVoters(1);
 });
+
 
 document.getElementById("agreedFamilyFilterBtn").addEventListener("click", function(e){
   e.stopPropagation();
