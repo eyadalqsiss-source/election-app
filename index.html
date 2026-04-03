@@ -1188,6 +1188,33 @@ margin:8mm;
 
   <div class="summary-line" id="selectedListFamilySummary"></div>
   <div id="selectedListFamilyWrap"></div>
+
+<hr style="border:none;border-top:1px solid var(--border);margin:18px 0;">
+
+<div class="section-title-row" style="margin-bottom:10px;">
+  <div class="section-title-left">
+    <h4 style="margin:0;color:var(--blue)">🏫 توزيع العائلات على المراكز</h4>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn btn-secondary" onclick="printReport('تقرير توزيع العائلات على المراكز','familyCentersWrap')">
+      🖨 طباعة
+    </button>
+    <button class="btn btn-light" onclick="exportTableToExcel('familyCentersTable','family_centers_report')">
+      📊 Excel
+    </button>
+  </div>
+</div>
+
+<div class="report-filter-box">
+  <div class="field">
+    <label for="familyCentersListFilter">اختر القائمة</label>
+    <select id="familyCentersListFilter" onchange="buildFamilyCentersReport()"></select>
+  </div>
+  <div class="section-subtitle">يعرض توزيع العائلات على المراكز حسب القائمة المختارة</div>
+</div>
+
+<div id="familyCentersWrap"></div>
 </div>
 
     </div>
@@ -1662,6 +1689,7 @@ centers.forEach(c=>{
 
 }
 
+
 function fillFamilyListFilter(){
   const sel = document.getElementById("familyListFilter");
   if(!sel) return;
@@ -1674,6 +1702,23 @@ function fillFamilyListFilter(){
 
   const currentValue = sel.value || "";
   sel.innerHTML = options.join("");
+
+  if(currentValue){
+    sel.value = currentValue;
+  }
+}
+
+function fillFamilyCentersListFilter(){
+  const sel = document.getElementById("familyCentersListFilter");
+  if(!sel) return;
+
+  const currentValue = sel.value || "";
+
+  sel.innerHTML = `
+    <option value="">كل القوائم</option>
+    <option value="لن يصوّت">لن يصوّت</option>
+    ${Object.keys(LISTS).map(listName => `<option value="${listName}">${listName}</option>`).join("")}
+  `;
 
   if(currentValue){
     sel.value = currentValue;
@@ -3022,6 +3067,8 @@ buildAlerts(latest);
 buildFamilyPositionReport();
 fillFamilyListFilter();
 buildSelectedListFamiliesReport();
+fillFamilyCentersListFilter();
+buildFamilyCentersReport();
     }
 
     function buildAlerts(latest){
@@ -3200,6 +3247,103 @@ wrap.innerHTML = `
   `;
 }
 
+window.buildFamilyCentersReport = function(){
+
+  const grouped = {};
+  const selectedList = safeText(document.getElementById("familyCentersListFilter")?.value || "");
+
+  const centers = [...new Set(
+    voters
+      .map(v => v.center)
+      .filter(c => safeText(c) && safeText(c).toLowerCase() !== "test")
+  )].sort(sortArabicText);
+
+  voters.forEach(v => {
+    const parent = familyGroupMap[v.family];
+    if(!parent) return;
+
+    if(safeText(v.center).toLowerCase() === "test") return;
+
+    const latest = latestGlobalMap[v.voterNumber] || null;
+
+    // إذا في قائمة مختارة، احسب فقط الناس اللي آخر اختيار إلهم هاي القائمة
+    if(selectedList){
+      if(!latest) return;
+      if(safeText(latest.list) !== selectedList) return;
+    }
+
+    if(!grouped[parent]){
+      grouped[parent] = {};
+      centers.forEach(c => grouped[parent][c] = 0);
+      grouped[parent].total = 0;
+    }
+
+    if(grouped[parent][v.center] !== undefined){
+      grouped[parent][v.center]++;
+      grouped[parent].total++;
+    }
+  });
+
+  const rows = Object.entries(grouped)
+    .map(([family, data]) => ({
+      family,
+      ...data
+    }))
+    .filter(r => r.total > 0)
+    .sort((a,b) => b.total - a.total);
+
+const centersTotals = {};
+centers.forEach(c => centersTotals[c] = 0);
+
+rows.forEach(r => {
+  centers.forEach(c => {
+    centersTotals[c] += Number(r[c] || 0);
+  });
+});
+
+const grandTotal = rows.reduce((sum, r) => sum + Number(r.total || 0), 0);
+
+  const wrap = document.getElementById("familyCentersWrap");
+
+  if(!wrap) return;
+
+  if(!rows.length){
+    wrap.innerHTML = `<div class="empty">لا يوجد بيانات</div>`;
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div class="clean-table-wrap">
+      <table class="clean-table" id="familyCentersTable">
+        <thead>
+          <tr>
+            <th class="num-cell">#</th>
+            <th class="family-cell">العائلة</th>
+            ${centers.map(c => `<th>${c}</th>`).join("")}
+            <th>المجموع</th>
+          </tr>
+        </thead>
+        <tbody>
+  ${rows.map((r,i)=>`
+    <tr>
+      <td class="num-cell">${i+1}</td>
+      <td class="family-cell">${r.family}</td>
+      ${centers.map(c => `<td class="count-cell">${r[c] || 0}</td>`).join("")}
+      <td class="count-cell"><b>${r.total}</b></td>
+    </tr>
+  `).join("")}
+
+  <tr class="total-row">
+    <td class="num-cell">—</td>
+    <td class="family-cell">المجموع الكلي</td>
+    ${centers.map(c => `<td class="count-cell"><b>${centersTotals[c] || 0}</b></td>`).join("")}
+    <td class="count-cell"><b>${grandTotal}</b></td>
+  </tr>
+</tbody>
+      </table>
+    </div>
+  `;
+}
 
 function getActiveFinalDecision(voterNumber){
 
@@ -3659,6 +3803,7 @@ await loadAssignments();
 await loadFinalDecisions();
 
 fillFamilyListFilter();
+fillFamilyCentersListFilter();
 
 buildDashboard();
 buildDifferences();
@@ -3779,16 +3924,22 @@ if(contentId === "agreedBox"){
           </tr>
         </thead>
         <tbody>
-          ${rows.map((r, i) => `
-            <tr>
-              <td>${i + 1}</td>
-              <td>${r.name || "-"}</td>
-              <td>${r.family || "-"} / ${r.parentFamily || "غير مجمعة"}</td>
-              <td>${r.center || "-"}</td>
-              <td>${getDelegateForVoter(r.voterNumber) || "-"}</td>
-            </tr>
-          `).join("")}
-        </tbody>
+  ${rows.map((r, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${r.name || "-"}</td>
+      <td>${r.family || "-"} / ${r.parentFamily || "غير مجمعة"}</td>
+      <td>${r.center || "-"}</td>
+      <td>${getDelegateForVoter(r.voterNumber) || "-"}</td>
+    </tr>
+  `).join("")}
+
+  <tr style="background:#e8f5e9;font-weight:bold">
+    <td>—</td>
+    <td colspan="3">المجموع الكلي</td>
+    <td>${rows.length}</td>
+  </tr>
+</tbody>
       </table>
     </div>
   `;
@@ -3886,35 +4037,58 @@ if(contentId === "agreedBox"){
   line-height:1.8;
   }
 
-  .print-body{
-  padding:24px;
-  }
+.print-body{
+  padding:22px 24px;
+}
 
-  h2{
-  margin:0 0 18px;
+h2{
+  margin:0 0 14px;
   color:#0f4c8a;
-  }
+}
 
-  table{
+table{
   width:100%;
   border-collapse:collapse;
   font-size:12px;
   table-layout:auto;
-  }
+  margin-top:10px;
+}
 
-  th, td{
+th, td{
   border:1px solid #dbe2e8;
-  padding:4px;
+  padding:7px 8px;
   text-align:right;
+  vertical-align:middle;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-  }
+}
 
-  th{
-  background:#f8fafc;
+th{
+  background:#eaf2fb;
   color:#0f4c8a;
-  }
+  font-weight:bold;
+}
+
+tbody tr:nth-child(odd){
+  background:#ffffff;
+}
+
+tbody tr:nth-child(even){
+  background:#f7f9fc;
+}
+
+tbody tr:hover{
+  background:#eef5fb;
+}
+
+thead tr{
+  page-break-inside:avoid;
+}
+
+tr{
+  page-break-inside:avoid;
+}
 
   /* عمود الرقم */
   th:first-child,
