@@ -1408,6 +1408,12 @@ placeholder="بحث بالاسم أو العائلة أو مركز الاقتر�
 <option value="all">كل المندوبين</option>
 </select>
 
+<select id="agreedDelegateAssignmentFilter" class="input">
+  <option value="all">كل الحالات</option>
+  <option value="assigned">لديه مندوب</option>
+  <option value="unassigned">غير مسند</option>
+</select>
+
 <button class="btn btn-light" onclick="openDelegatesModal()">
 + مندوب
 </button>
@@ -1562,6 +1568,7 @@ import {
     let delegatesList = [];
     let delegateAssignmentsMap = {};
     let selectedDelegateFilter = "all";
+    let selectedDelegateAssignmentFilter = "all";
 
 // ====== Family Groups System ======
 
@@ -3687,6 +3694,9 @@ function buildAgreed(){
 const delegateFilter =
 document.getElementById("agreedDelegateFilter")?.value || "all";
 
+const delegateAssignmentFilter =
+document.getElementById("agreedDelegateAssignmentFilter")?.value || "all";
+
   const rows = buildAgreedData().filter(r => {
 
     const name = (r.name || "").toLowerCase();
@@ -3734,6 +3744,19 @@ if(delegateFilter !== "all"){
     return false;
   }
 }
+
+if(delegateAssignmentFilter === "assigned"){
+  if(!assignedDelegate){
+    return false;
+  }
+}
+
+if(delegateAssignmentFilter === "unassigned"){
+  if(assignedDelegate){
+    return false;
+  }
+}
+
 
     return true;
 
@@ -4276,6 +4299,12 @@ document
   buildAgreed();
 });
 
+document
+.getElementById("agreedDelegateAssignmentFilter")
+.addEventListener("change", function(){
+  selectedDelegateAssignmentFilter = this.value || "all";
+  buildAgreed();
+});
 
 async function addDelegate(name){
   const cleanName = safeText(name);
