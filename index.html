@@ -1863,8 +1863,8 @@ function fillDelegateFilter(){
 
   sel.innerHTML = `<option value="all">كل المندوبين</option>`;
 
-  delegatesList.forEach(name => {
-    sel.innerHTML += `<option value="${name}">${name}</option>`;
+  delegatesList.forEach((name, index) => {
+    sel.innerHTML += `<option value="${name}">${index + 1} - ${name}</option>`;
   });
 
   sel.value = selectedDelegateFilter || "all";
@@ -1879,12 +1879,12 @@ function renderDelegatesList(){
     return;
   }
 
-  box.innerHTML = delegatesList.map(name => `
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;">
-      <div>${name}</div>
-      <button class="btn btn-danger btn-sm" onclick="deleteDelegateByName('${name}')">حذف</button>
-    </div>
-  `).join("");
+box.innerHTML = delegatesList.map((name, index) => `
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;">
+    <div>${index + 1} - ${name}</div>
+    <button class="btn btn-danger btn-sm" onclick="deleteDelegateByName('${name}')">حذف</button>
+  </div>
+`).join("");
 }
 
 window.openDelegatesModal = function(){
@@ -3662,8 +3662,10 @@ window.clearAllAgreedFamilies = function(){
 function delegateOptionsHtml(selectedDelegate){
   return `
     <option value="">بدون مندوب</option>
-    ${delegatesList.map(name => `
-      <option value="${name}" ${selectedDelegate === name ? "selected" : ""}>${name}</option>
+    ${delegatesList.map((name, index) => `
+      <option value="${name}" ${selectedDelegate === name ? "selected" : ""}>
+        ${index + 1} - ${name}
+      </option>
     `).join("")}
   `;
 }
