@@ -1114,6 +1114,10 @@ margin:8mm;
       <button class="tab-btn" onclick="showSection('differencesSection', this)">الاختلافات</button>
       <button class="tab-btn" onclick="showSection('agreedSection', this)">المتوافق عليهم</button>
       <button class="tab-btn" onclick="showSection('familyGroupsSection', this)">🧬 تجميع العائلات </button>
+<button class="tab-btn" onclick="showSection('electionDaySection', this)">🗳️ يوم الانتخابات</button>
+<button class="tab-btn" onclick="showSection('remainingSection', this)">🚨 المتبقين</button>
+<button class="tab-btn" onclick="showSection('delegatesDaySection', this)">👥 المندوبون اليوم</button>
+<button class="tab-btn" onclick="showSection('dayDashboardSection', this)">📊 إحصائيات اليوم</button>
     </div>
 
     <!-- Dashboard -->
@@ -1446,6 +1450,160 @@ onclick="exportTableToExcel('agreedTable','agreed_voters_report')">
 </div>
 </div>
 
+<!-- Election Day -->
+<div id="electionDaySection" class="section">
+  <div class="card">
+    <div class="section-title-row">
+      <div class="section-title-left">
+        <div class="section-logo">
+          <img src="logo.png" alt="الشعار">
+        </div>
+        <h3 class="card-title" style="margin:0">🗳️ يوم الانتخابات</h3>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div class="field">
+        <label>بحث</label>
+        <input id="daySearchInput" placeholder="الاسم / العائلة / رقم الناخب / الهاتف" />
+      </div>
+
+      <div class="field">
+        <label>المركز</label>
+        <select id="dayCenterFilter"></select>
+      </div>
+
+      <div class="field">
+        <label>العائلة الأم</label>
+        <select id="dayParentFamilyFilter"></select>
+      </div>
+
+      <div class="field">
+        <label>المندوب</label>
+        <select id="dayDelegateFilter"></select>
+      </div>
+
+      <div class="field">
+        <label>الحالة الميدانية</label>
+        <select id="dayFieldStatusFilter"></select>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="buildElectionDayTab()">تطبيق</button>
+      <button class="btn btn-light" onclick="resetElectionDayFilters()">إعادة تعيين</button>
+    </div>
+
+    <div class="summary-line" id="electionDaySummary"></div>
+  </div>
+
+  <div id="electionDayBox"></div>
+</div>
+
+<!-- Remaining -->
+<div id="remainingSection" class="section">
+  <div class="card">
+    <h3 class="card-title">🚨 المتبقين</h3>
+
+    <div class="filters">
+      <div class="field">
+        <label>المركز</label>
+        <select id="remainingCenterFilter"></select>
+      </div>
+
+      <div class="field">
+        <label>العائلة الأم</label>
+        <select id="remainingParentFamilyFilter"></select>
+      </div>
+
+      <div class="field">
+        <label>المندوب</label>
+        <select id="remainingDelegateFilter"></select>
+      </div>
+
+      <div class="field">
+        <label>الحالة الميدانية</label>
+        <select id="remainingFieldStatusFilter"></select>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="buildRemainingTab()">تطبيق</button>
+      <button class="btn btn-secondary" onclick="printReport('تقرير المتبقين','remainingBox')">🖨 طباعة</button>
+    </div>
+
+    <div class="summary-line" id="remainingSummary"></div>
+  </div>
+
+  <div id="remainingBox"></div>
+</div>
+
+<!-- Delegates Day -->
+<div id="delegatesDaySection" class="section">
+  <div class="card">
+    <h3 class="card-title">👥 أداء المندوبين يوم الانتخابات</h3>
+    <div class="summary-line" id="delegatesDaySummary"></div>
+    <div id="delegatesDayBox"></div>
+  </div>
+</div>
+
+<!-- Day Dashboard -->
+<div id="dayDashboardSection" class="section">
+  <div class="card">
+    <div class="section-title-row">
+      <div class="section-title-left">
+        <div class="section-logo">
+          <img src="logo.png" alt="الشعار">
+        </div>
+        <h3 class="card-title" style="margin:0">📊 إحصائيات يوم الانتخابات</h3>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn btn-secondary" onclick="printDayDashboardReport()">🖨 طباعة</button>
+        <button class="btn btn-light" onclick="exportDayDashboardExcel()">📊 Excel</button>
+      </div>
+    </div>
+
+    <div class="filters" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;">
+      <div class="multi-filter" id="dayListsFilterWrap" style="min-width:260px;width:260px;">
+        <button type="button" class="multi-filter-btn" id="dayListsFilterBtn">
+          كل القوائم
+        </button>
+
+        <div class="multi-filter-dropdown hidden" id="dayListsFilterDropdown" style="min-width:340px;width:340px;max-width:420px;">
+          <div class="multi-filter-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+            <button type="button" class="btn btn-light btn-sm" onclick="selectAllDayLists()">الكل</button>
+            <button type="button" class="btn btn-light btn-sm" onclick="clearAllDayLists()">إلغاء الكل</button>
+          </div>
+
+          <div id="dayListsFilterOptions" class="multi-filter-options"></div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="buildDayDashboard()">تطبيق الفلتر</button>
+    </div>
+
+    <div class="summary-line" id="dayDashboardSummary"></div>
+  </div>
+
+  <div class="grid grid-4" id="dayDashboardCards"></div>
+
+  <div class="card">
+    <h3 class="card-title">🏫 حسب المراكز</h3>
+    <div id="dayCentersBox"></div>
+  </div>
+
+  <div class="card">
+    <h3 class="card-title">🧬 حسب العائلات</h3>
+    <div id="dayFamiliesBox"></div>
+  </div>
+
+  <div class="card">
+    <h3 class="card-title">🚨 تنبيهات اليوم</h3>
+    <div id="dayAlertsBox"></div>
+  </div>
+</div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
@@ -1569,6 +1727,8 @@ import {
     let delegateAssignmentsMap = {};
     let selectedDelegateFilter = "all";
     let selectedDelegateAssignmentFilter = "all";
+let electionDayMap = {};
+let selectedDayLists = [];
 
 // ====== Family Groups System ======
 
@@ -1669,6 +1829,61 @@ async function saveDelegateAssignmentToFirebase(voterNumber, delegateName){
 
 async function removeDelegateAssignmentFromFirebase(voterNumber){
   await deleteDoc(doc(db, "delegate_assignments", voterNumber));
+}
+
+// ==========================
+// 🗳️ يوم الانتخابات
+// ==========================
+
+async function loadElectionDayTracking(){
+  electionDayMap = {};
+
+  const snapshot = await getDocs(collection(db, "election_day_tracking"));
+
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    const voterNumber = safeText(data.voterNumber);
+
+    if(!voterNumber) return;
+
+    electionDayMap[voterNumber] = {
+      voterNumber,
+      name: safeText(data.name),
+      family: safeText(data.family),
+      center: safeText(data.center),
+      parentFamily: safeText(data.parentFamily),
+      delegateName: safeText(data.delegateName),
+      voted: !!data.voted,
+      fieldStatus: safeText(data.fieldStatus || "لم يصوّت"),
+      fieldNote: safeText(data.fieldNote || ""),
+      updatedAtMs: Number(data.updatedAtMs || 0)
+    };
+  });
+}
+
+async function saveElectionDayStatus(voterNumber, patch = {}){
+  const voter = voters.find(v => v.voterNumber === voterNumber);
+  if(!voter) return;
+
+  const current = electionDayMap[voterNumber] || {};
+  const delegateName = getDelegateForVoter(voterNumber);
+
+  const payload = {
+    voterNumber,
+    name: voter.name || "",
+    family: voter.family || "",
+    center: voter.center || "",
+    parentFamily: familyGroupMap[voter.family] || "غير مجمعة",
+    delegateName: delegateName || "",
+    voted: current.voted || false,
+    fieldStatus: current.fieldStatus || "لم يصوّت",
+    fieldNote: current.fieldNote || "",
+    updatedAtMs: Date.now(),
+    ...patch
+  };
+
+  await setDoc(doc(db, "election_day_tracking", voterNumber), payload);
+  await loadElectionDayTracking();
 }
 
 
@@ -1822,6 +2037,14 @@ const rows = Object.entries(grouped)
       return (v ?? "").toString().trim();
     }
 
+function getFieldStatuses(){
+  return [
+    "الكل",
+    "لم يصوّت",
+    "صوّت"
+  ];
+}
+
 window.removeFamilyFromGroup = async function(family){
 
   await removeFamilyGroupFromFirebase(family);
@@ -1868,6 +2091,121 @@ function fillDelegateFilter(){
   });
 
   sel.value = selectedDelegateFilter || "all";
+}
+
+function fillElectionDayFilters(){
+  const centers = ["الكل", ...new Set(voters.map(v => v.center).filter(Boolean))].sort(sortArabicText);
+  const parentFamilies = ["الكل", ...new Set(Object.values(familyGroupMap).filter(Boolean))].sort(sortArabicText);
+  const fieldStatuses = getFieldStatuses();
+
+  const delegatesOptions = [
+    `<option value="all">كل المندوبين</option>`,
+    ...delegatesList.map(name => `<option value="${name}">${name}</option>`)
+  ].join("");
+
+  const centerOptions = centers.map(c => `<option value="${c}">${c}</option>`).join("");
+  const familyOptions = parentFamilies.map(f => `<option value="${f}">${f}</option>`).join("");
+  const statusOptions = fieldStatuses.map(s => `<option value="${s}">${s}</option>`).join("");
+
+  const ids = {
+    dayCenterFilter: centerOptions,
+    remainingCenterFilter: centerOptions,
+    dayParentFamilyFilter: familyOptions,
+    remainingParentFamilyFilter: familyOptions,
+    dayFieldStatusFilter: statusOptions,
+    remainingFieldStatusFilter: statusOptions,
+    dayDelegateFilter: delegatesOptions,
+    remainingDelegateFilter: delegatesOptions
+  };
+
+  Object.entries(ids).forEach(([id, html]) => {
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = html;
+  });
+}
+
+function buildDayListsFilterOptions(){
+  const box = document.getElementById("dayListsFilterOptions");
+  if(!box) return;
+
+  const lists = Object.keys(LISTS);
+
+  box.innerHTML = lists.map(listName => `
+    <label class="multi-filter-option">
+      <input type="checkbox" class="day-list-checkbox" value="${listName}" onchange="toggleDayListsFilter()">
+      <span>${listName}</span>
+    </label>
+  `).join("");
+
+  selectedDayLists = [];
+  updateDayListsFilterButton();
+}
+
+function updateDayListsFilterButton(){
+  const btn = document.getElementById("dayListsFilterBtn");
+  if(!btn) return;
+
+  if(selectedDayLists.length === 0){
+    btn.textContent = "كل القوائم";
+  }else if(selectedDayLists.length <= 2){
+    btn.textContent = selectedDayLists.join("، ");
+  }else{
+    btn.textContent = selectedDayLists.slice(0,2).join("، ") + ` +${selectedDayLists.length - 2}`;
+  }
+}
+
+window.toggleDayListsFilter = function(){
+  selectedDayLists = Array.from(document.querySelectorAll(".day-list-checkbox:checked"))
+    .map(cb => cb.value);
+
+  updateDayListsFilterButton();
+  buildDayDashboard();
+};
+
+window.selectAllDayLists = function(){
+  document.querySelectorAll(".day-list-checkbox").forEach(cb => cb.checked = true);
+  selectedDayLists = Array.from(document.querySelectorAll(".day-list-checkbox")).map(cb => cb.value);
+  updateDayListsFilterButton();
+  buildDayDashboard();
+};
+
+window.clearAllDayLists = function(){
+  document.querySelectorAll(".day-list-checkbox").forEach(cb => cb.checked = false);
+  selectedDayLists = [];
+  updateDayListsFilterButton();
+  buildDayDashboard();
+};
+
+function getFilteredVotersForDayDashboard(){
+  if(selectedDayLists.length === 0){
+    return voters;
+  }
+
+  return voters.filter(v => {
+    const latest = latestGlobalMap[v.voterNumber];
+    if(!latest) return false;
+
+    return selectedDayLists.includes(safeText(latest.list));
+  });
+}
+
+function matchesSelectedDayLists(voter){
+  if(selectedDayLists.length === 0){
+    return true;
+  }
+
+  const latest = latestGlobalMap[voter.voterNumber];
+  if(!latest) return false;
+
+  return selectedDayLists.includes(safeText(latest.list));
+}
+
+function getDayListsReportLabel(){
+  if(selectedDayLists.length === 1){
+    return `إجمالي التابعين للقائمة ${selectedDayLists[0]}`;
+  }
+
+  return "إجمالي التابعين للقوائم المختارة";
 }
 
 function renderDelegatesList(){
@@ -3558,6 +3896,35 @@ return rows;
 
 }
 
+function getOurBaseForElectionDay(){
+  const agreedMap = {};
+
+  buildAgreedData().forEach(r => {
+    agreedMap[r.voterNumber] = true;
+  });
+
+  return voters.filter(v => {
+    if(agreedMap[v.voterNumber]) return true;
+
+    const latest = latestGlobalMap[v.voterNumber];
+    if(!latest) return false;
+
+    return safeText(latest.list) === "4 - العهد والتنمية";
+  });
+}
+
+function getAllVotersForElectionDay(){
+  return voters;
+}
+
+function getList4Supporters(){
+  return voters.filter(v => {
+    const latest = latestGlobalMap[v.voterNumber];
+    if(!latest) return false;
+    return safeText(latest.list) === "4 - العهد والتنمية";
+  });
+}
+
 function buildAgreedFamilyFilterOptions(families){
   const box = document.getElementById("agreedFamilyFilterOptions");
   if(!box) return;
@@ -3676,6 +4043,48 @@ window.changeDelegateForVoter = async function(voterNumber, selectEl){
   await assignDelegateToVoter(voterNumber, delegateName);
   selectedDelegateFilter = document.getElementById("agreedDelegateFilter")?.value || "all";
   buildAgreed();
+};
+
+
+window.markVoterAsVoted = async function(voterNumber){
+  await saveElectionDayStatus(voterNumber, {
+    voted: true,
+    fieldStatus: "صوّت",
+    updatedAtMs: Date.now()
+  });
+
+  buildElectionDayTab();
+  buildRemainingTab();
+  buildDelegatesDayTab();
+  buildDayDashboard();
+};
+
+window.unmarkVoterAsVoted = async function(voterNumber){
+  await saveElectionDayStatus(voterNumber, {
+    voted: false,
+    fieldStatus: "لم يصوّت",
+    updatedAtMs: Date.now()
+  });
+
+  buildElectionDayTab();
+  buildRemainingTab();
+  buildDelegatesDayTab();
+  buildDayDashboard();
+};
+
+window.updateFieldStatus = async function(voterNumber){
+  const status = safeText(document.getElementById(`fieldStatus-${voterNumber}`)?.value);
+
+  await saveElectionDayStatus(voterNumber, {
+    voted: status === "صوّت",
+    fieldStatus: status || "لم يصوّت",
+    updatedAtMs: Date.now()
+  });
+
+  buildElectionDayTab();
+  buildRemainingTab();
+  buildDelegatesDayTab();
+  buildDayDashboard();
 };
 
 
@@ -3820,23 +4229,512 @@ ${rows.map((r,i) => {
 }
 
 
+window.buildElectionDayTab = function(){
+  const search = safeText(document.getElementById("daySearchInput")?.value).toLowerCase();
+  const centerFilter = safeText(document.getElementById("dayCenterFilter")?.value || "الكل");
+  const parentFamilyFilter = safeText(document.getElementById("dayParentFamilyFilter")?.value || "الكل");
+  const delegateFilter = safeText(document.getElementById("dayDelegateFilter")?.value || "all");
+  const fieldStatusFilter = safeText(document.getElementById("dayFieldStatusFilter")?.value || "الكل");
+
+  const rows = getAllVotersForElectionDay().filter(v => {
+    const tracking = electionDayMap[v.voterNumber] || {};
+    const delegateName = getDelegateForVoter(v.voterNumber) || "";
+    const parentFamily = familyGroupMap[v.family] || "غير مجمعة";
+    const fieldStatus = safeText(tracking.fieldStatus || "لم يصوّت");
+
+    const haystack = [
+      v.name,
+      v.family,
+      v.voterNumber,
+      v.phone,
+      v.center,
+      delegateName
+    ].join(" ").toLowerCase();
+
+    if(search && !haystack.includes(search)) return false;
+    if(centerFilter !== "الكل" && v.center !== centerFilter) return false;
+    if(parentFamilyFilter !== "الكل" && parentFamily !== parentFamilyFilter) return false;
+    if(delegateFilter !== "all" && delegateName !== delegateFilter) return false;
+    if(fieldStatusFilter !== "الكل" && fieldStatus !== fieldStatusFilter) return false;
+
+    return true;
+  });
+
+  const votedCount = rows.filter(v => electionDayMap[v.voterNumber]?.voted).length;
+  const remainingCount = rows.length - votedCount;
+
+  document.getElementById("electionDaySummary").innerHTML = `
+    <span>إجمالي الناخبين: <b>${rows.length}</b></span>
+    <span>—</span>
+    <span>صوّت: <b>${votedCount}</b></span>
+    <span>—</span>
+    <span>لم يصوّت: <b>${remainingCount}</b></span>
+  `;
+
+  const box = document.getElementById("electionDayBox");
+
+  if(!rows.length){
+    box.innerHTML = `<div class="card empty">لا توجد نتائج</div>`;
+    return;
+  }
+
+  box.innerHTML = rows.map(v => {
+    const tracking = electionDayMap[v.voterNumber] || {};
+    const delegateName = getDelegateForVoter(v.voterNumber) || "-";
+    const parentFamily = familyGroupMap[v.family] || "غير مجمعة";
+    const isVoted = !!tracking.voted;
+    const fieldStatus = tracking.fieldStatus || "لم يصوّت";
+
+    return `
+      <div class="voter-card ${isVoted ? 'user-saved' : ''}">
+        <div class="voter-head">
+          <div>
+            <h3 class="voter-name">${v.name || "-"}</h3>
+            <div class="voter-meta">
+              <span class="badge">العائلة: ${parentFamily} / ${v.family || "-"}</span>
+              <span class="badge">رقم الناخب: ${v.voterNumber || "-"}</span>
+              <span class="badge">المركز: ${v.center || "-"}</span>
+              <span class="badge">المندوب: ${delegateName}</span>
+              ${isVoted ? `<span class="badge ok">✅ صوّت</span>` : `<span class="badge danger">⏳ لم يصوّت</span>`}
+            </div>
+          </div>
+        </div>
+
+        <div class="voter-actions">
+          <div class="field">
+            <label>الحالة</label>
+            <select id="fieldStatus-${v.voterNumber}">
+              ${getFieldStatuses().filter(s => s !== "الكل").map(s => `
+                <option value="${s}" ${fieldStatus === s ? "selected" : ""}>${s}</option>
+              `).join("")}
+            </select>
+          </div>
+
+          <div class="field">
+            <label>&nbsp;</label>
+            <button class="btn btn-secondary" onclick="updateFieldStatus('${v.voterNumber}')">حفظ</button>
+          </div>
+
+          <div class="field">
+            <label>&nbsp;</label>
+            ${isVoted
+              ? `<button class="btn btn-danger" onclick="unmarkVoterAsVoted('${v.voterNumber}')">إلغاء التصويت</button>`
+              : `<button class="btn btn-primary" onclick="markVoterAsVoted('${v.voterNumber}')">✅ تم التصويت</button>`
+            }
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+};
+
+
+window.buildRemainingTab = function(){
+  const centerFilter = safeText(document.getElementById("remainingCenterFilter")?.value || "الكل");
+  const parentFamilyFilter = safeText(document.getElementById("remainingParentFamilyFilter")?.value || "الكل");
+  const delegateFilter = safeText(document.getElementById("remainingDelegateFilter")?.value || "all");
+  const fieldStatusFilter = safeText(document.getElementById("remainingFieldStatusFilter")?.value || "الكل");
+
+  const rows = getList4Supporters().filter(v => {
+    const tracking = electionDayMap[v.voterNumber] || {};
+    const delegateName = getDelegateForVoter(v.voterNumber) || "";
+    const parentFamily = familyGroupMap[v.family] || "غير مجمعة";
+
+    const isVoted = tracking.voted === true;
+    const effectiveStatus = isVoted ? "صوّت" : "لم يصوّت";
+
+    // أي واحد مش مصوّت يطلع هون
+    if(isVoted) return false;
+
+    if(centerFilter !== "الكل" && v.center !== centerFilter) return false;
+    if(parentFamilyFilter !== "الكل" && parentFamily !== parentFamilyFilter) return false;
+    if(delegateFilter !== "all" && delegateName !== delegateFilter) return false;
+    if(fieldStatusFilter !== "الكل" && effectiveStatus !== fieldStatusFilter) return false;
+
+    return true;
+  });
+
+  document.getElementById("remainingSummary").innerHTML = `
+    <span>عدد المتبقين: <b>${rows.length}</b></span>
+  `;
+
+  const box = document.getElementById("remainingBox");
+
+  if(!rows.length){
+    box.innerHTML = `<div class="success-box">لا يوجد متبقين ضمن الفلتر الحالي</div>`;
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="table-wrap">
+      <table id="remainingTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>الاسم</th>
+            <th>العائلة</th>
+            <th>المركز</th>
+            <th>المندوب</th>
+            <th>الحالة</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((v, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${v.name || "-"}</td>
+              <td>${familyGroupMap[v.family] || "غير مجمعة"} / ${v.family || "-"}</td>
+              <td>${v.center || "-"}</td>
+              <td>${getDelegateForVoter(v.voterNumber) || "-"}</td>
+              <td>لم يصوّت</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+};
+
+
+window.buildDelegatesDayTab = function(){
+  const base = getList4Supporters();
+
+  const rows = delegatesList.map(name => {
+    const assigned = base.filter(v => getDelegateForVoter(v.voterNumber) === name);
+    const voted = assigned.filter(v => electionDayMap[v.voterNumber]?.voted).length;
+    const remaining = assigned.length - voted;
+    const progress = assigned.length ? Math.round((voted / assigned.length) * 100) : 0;
+
+    return {
+      name,
+      total: assigned.length,
+      voted,
+      remaining,
+      progress
+    };
+  }).sort((a,b) => b.total - a.total);
+
+  document.getElementById("delegatesDaySummary").innerHTML = `
+    <span>عدد المندوبين: <b>${rows.length}</b></span>
+  `;
+
+  document.getElementById("delegatesDayBox").innerHTML = `
+    <div class="table-wrap">
+      <table id="delegatesDayTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>المندوب</th>
+            <th>المسندين</th>
+            <th>صوّت</th>
+            <th>متبقي</th>
+            <th>نسبة الإنجاز</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${r.name}</td>
+              <td>${r.total}</td>
+              <td>${r.voted}</td>
+              <td>${r.remaining}</td>
+              <td><b>${r.progress}%</b></td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+};
+
+window.buildDayDashboard = function(){
+  const base = getAllVotersForElectionDay();
+  const total = base.length;
+  const voted = base.filter(v => electionDayMap[v.voterNumber]?.voted).length;
+  const remaining = total - voted;
+  const progress = total ? Math.round((voted / total) * 100) : 0;
+const unclassified = base.filter(v => {
+  const latest = latestGlobalMap[v.voterNumber];
+  return !latest;
+}).length;
+  const needsTransport = base.filter(v => {
+    const status = electionDayMap[v.voterNumber]?.fieldStatus || "";
+    return status === "بحاجة سيارة";
+  }).length;
+
+ document.getElementById("dayDashboardCards").innerHTML = `
+  <div class="metric metric-filled">
+    <div class="label">إجمالي الناخبين</div>
+    <div class="value">${total}</div>
+  </div>
+
+  <div class="metric metric-confirmed">
+    <div class="label">صوّت</div>
+    <div class="value">${voted}</div>
+  </div>
+
+  <div class="metric metric-wontvote">
+    <div class="label">لم يصوّت</div>
+    <div class="value">${remaining}</div>
+  </div>
+
+  <div class="metric metric-progress">
+    <div class="label">نسبة الإنجاز</div>
+    <div class="value">${progress}%</div>
+  </div>
+
+  <div class="metric metric-unfilled">
+    <div class="label">غير مفروز سياسيًا</div>
+    <div class="value">${unclassified}</div>
+  </div>
+`;
+
+  buildDayCentersReport(base);
+  buildDayFamiliesReport(base);
+  buildDayAlerts(base);
+};
+
+function buildDayCentersReport(base){
+  const grouped = {};
+
+  base
+    .filter(v => matchesSelectedDayLists(v))
+    .filter(v => safeText(v.center).toLowerCase() !== "test")
+    .forEach(v => {
+      if(!grouped[v.center]){
+        grouped[v.center] = { total: 0, voted: 0 };
+      }
+
+      grouped[v.center].total++;
+
+      if(electionDayMap[v.voterNumber]?.voted){
+        grouped[v.center].voted++;
+      }
+    });
+
+  const rows = Object.entries(grouped).map(([center, data]) => ({
+    center,
+    total: data.total,
+    voted: data.voted,
+    notVoted: data.total - data.voted,
+    progress: data.total ? Math.round((data.voted / data.total) * 100) : 0
+  })).sort((a,b) => b.total - a.total);
+
+  const selectedListsLabel = selectedDayLists.length
+    ? selectedDayLists.join("، ")
+    : "كل القوائم";
+
+  const totalColumnLabel = getDayListsReportLabel();
+
+  const grandTotal = rows.reduce((sum, r) => sum + r.total, 0);
+  const grandVoted = rows.reduce((sum, r) => sum + r.voted, 0);
+  const grandNotVoted = rows.reduce((sum, r) => sum + r.notVoted, 0);
+  const grandProgress = grandTotal ? Math.round((grandVoted / grandTotal) * 100) : 0;
+
+  document.getElementById("dayCentersBox").innerHTML = `
+    <div class="section-title-row" style="margin-bottom:10px;">
+      <div class="section-title-left">
+        <div class="small">القوائم المختارة: <b>${selectedListsLabel}</b></div>
+      </div>
+
+      <div class="toolbar no-print">
+        <button class="btn btn-secondary btn-sm" onclick="printDayCentersReport()">🖨 طباعة المراكز</button>
+        <button class="btn btn-light btn-sm" onclick="exportDayCentersExcel()">📊 Excel</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="dayCentersTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>المركز</th>
+            <th>${totalColumnLabel}</th>
+            <th>صوّت</th>
+            <th>لم يصوّت</th>
+            <th>النسبة</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${r.center}</td>
+              <td>${r.total}</td>
+              <td>${r.voted}</td>
+              <td>${r.notVoted}</td>
+              <td><b>${r.progress}%</b></td>
+            </tr>
+          `).join("")}
+
+          <tr style="background:#e8f5e9;font-weight:bold">
+            <td>—</td>
+            <td>المجموع الكلي</td>
+            <td>${grandTotal}</td>
+            <td>${grandVoted}</td>
+            <td>${grandNotVoted}</td>
+            <td><b>${grandProgress}%</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+
+function buildDayFamiliesReport(base){
+  const grouped = {};
+
+  base
+    .filter(v => matchesSelectedDayLists(v))
+    .forEach(v => {
+      const parentFamily = familyGroupMap[v.family] || "غير مجمعة";
+
+      if(!grouped[parentFamily]){
+        grouped[parentFamily] = { total: 0, voted: 0 };
+      }
+
+      grouped[parentFamily].total++;
+
+      if(electionDayMap[v.voterNumber]?.voted){
+        grouped[parentFamily].voted++;
+      }
+    });
+
+  const rows = Object.entries(grouped).map(([family, data]) => ({
+    family,
+    total: data.total,
+    voted: data.voted,
+    notVoted: data.total - data.voted,
+    progress: data.total ? Math.round((data.voted / data.total) * 100) : 0
+  })).sort((a,b) => b.total - a.total);
+
+  const selectedListsLabel = selectedDayLists.length
+    ? selectedDayLists.join("، ")
+    : "كل القوائم";
+
+  const totalColumnLabel = getDayListsReportLabel();
+
+  // 🔥 المجموع الكلي
+  const grandTotal = rows.reduce((sum, r) => sum + r.total, 0);
+  const grandVoted = rows.reduce((sum, r) => sum + r.voted, 0);
+  const grandNotVoted = rows.reduce((sum, r) => sum + r.notVoted, 0);
+  const grandProgress = grandTotal ? Math.round((grandVoted / grandTotal) * 100) : 0;
+
+  document.getElementById("dayFamiliesBox").innerHTML = `
+    <div class="section-title-row" style="margin-bottom:10px;">
+      <div class="section-title-left">
+        <div class="small">القوائم المختارة: <b>${selectedListsLabel}</b></div>
+      </div>
+
+      <div class="toolbar no-print">
+        <button class="btn btn-secondary btn-sm" onclick="printDayFamiliesReport()">🖨 طباعة العائلات</button>
+        <button class="btn btn-light btn-sm" onclick="exportDayFamiliesExcel()">📊 Excel</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="dayFamiliesTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>العائلة</th>
+            <th>${totalColumnLabel}</th>
+            <th>صوّت</th>
+            <th>لم يصوّت</th>
+            <th>النسبة</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${r.family}</td>
+              <td>${r.total}</td>
+              <td>${r.voted}</td>
+              <td>${r.notVoted}</td>
+              <td><b>${r.progress}%</b></td>
+            </tr>
+          `).join("")}
+
+          <tr style="background:#e8f5e9;font-weight:bold">
+            <td>—</td>
+            <td>المجموع الكلي</td>
+            <td>${grandTotal}</td>
+            <td>${grandVoted}</td>
+            <td>${grandNotVoted}</td>
+            <td><b>${grandProgress}%</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+
+function buildDayAlerts(base){
+  const centers = {};
+
+  base.forEach(v => {
+    if(!centers[v.center]){
+      centers[v.center] = { total: 0, voted: 0 };
+    }
+    centers[v.center].total++;
+    if(electionDayMap[v.voterNumber]?.voted){
+      centers[v.center].voted++;
+    }
+  });
+
+  const alerts = Object.entries(centers)
+    .map(([center, data]) => ({
+      center,
+      total: data.total,
+      voted: data.voted,
+      progress: data.total ? Math.round((data.voted / data.total) * 100) : 0
+    }))
+    .filter(x => x.total >= 10 && x.progress < 35)
+    .sort((a,b) => a.progress - b.progress);
+
+  const box = document.getElementById("dayAlertsBox");
+
+  if(!alerts.length){
+    box.innerHTML = `<div class="success-box">لا توجد مراكز متأخرة بشكل واضح حالياً</div>`;
+    return;
+  }
+
+  box.innerHTML = alerts.map(a => `
+    <div class="danger-box">
+      ⚠ <b>${a.center}</b><br>
+      صوّت: ${a.voted} من ${a.total} — النسبة: ${a.progress}%
+    </div>
+  `).join("");
+}
+
 window.refreshSystem = async function(){
 
-setSyncStatus("جار تحديث البيانات...");
+  setSyncStatus("جار تحديث البيانات...");
 
-await loadAssignments();
-await loadFinalDecisions();
+  await loadAssignments();
+  await loadFinalDecisions();
+  await loadElectionDayTracking();
 
-fillFamilyListFilter();
-fillFamilyCentersListFilter();
+  fillFamilyListFilter();
+  fillFamilyCentersListFilter();
+  fillElectionDayFilters();
+buildDayListsFilterOptions();
 
-buildDashboard();
-buildDifferences();
-buildAgreed();
-searchVoters(currentSearchPage);
+  buildDashboard();
+  buildDifferences();
+  buildAgreed();
+  buildElectionDayTab();
+  buildRemainingTab();
+  buildDelegatesDayTab();
+  buildDayDashboard();
 
-setSyncStatus("تم التحديث");
+  searchVoters(currentSearchPage);
 
+  setSyncStatus("تم التحديث");
 }
 
     window.exportTableToExcel = function(tableId, fileName){
@@ -4195,6 +5093,673 @@ ${printContentHtml}
   },500);
 };
 
+
+window.printDayDashboardReport = function(){
+  const user = getCurrentUser() || "-";
+  const nowText = new Date().toLocaleString("ar-EG");
+
+  const summary = document.getElementById("dayDashboardSummary")?.innerText || "";
+  const cards = document.getElementById("dayDashboardCards")?.innerHTML || "";
+  const centers = document.getElementById("dayCentersBox")?.innerHTML || "";
+  const families = document.getElementById("dayFamiliesBox")?.innerHTML || "";
+  const alerts = document.getElementById("dayAlertsBox")?.innerHTML || "";
+
+  const printWindow = window.open("", "_blank", "width=1400,height=900");
+  if(!printWindow) return;
+
+  printWindow.document.write(`
+    <html dir="rtl">
+    <head>
+      <meta charset="UTF-8">
+      <title>إحصائيات يوم الانتخابات</title>
+      <style>
+        body{
+          font-family:Arial, Tahoma, sans-serif;
+          direction:rtl;
+          margin:0;
+          padding:20px;
+          color:#17212b;
+        }
+
+        .header{
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          margin-bottom:20px;
+          border-bottom:2px solid #dbe2e8;
+          padding-bottom:12px;
+        }
+
+        .title{
+          font-size:24px;
+          font-weight:bold;
+          color:#0f4c8a;
+        }
+
+        .meta{
+          font-size:13px;
+          color:#555;
+          line-height:1.8;
+        }
+
+        .summary{
+          margin:12px 0 18px;
+          font-size:15px;
+          color:#374151;
+        }
+
+        .grid{
+          display:grid;
+          grid-template-columns:repeat(4,1fr);
+          gap:12px;
+          margin-bottom:20px;
+        }
+
+        .metric{
+          border:1px solid #dbe2e8;
+          border-radius:12px;
+          padding:14px;
+          background:#fff;
+        }
+
+        .metric .label{
+          font-size:13px;
+          color:#6b7280;
+          margin-bottom:6px;
+        }
+
+        .metric .value{
+          font-size:28px;
+          font-weight:bold;
+          color:#17212b;
+        }
+
+        h3{
+          color:#0f4c8a;
+          margin:22px 0 10px;
+        }
+
+        table{
+          width:100%;
+          border-collapse:collapse;
+          margin-top:8px;
+          font-size:12px;
+        }
+
+        th, td{
+          border:1px solid #dbe2e8;
+          padding:7px 8px;
+          text-align:right;
+        }
+
+        th{
+          background:#eef5fb;
+          color:#0f4c8a;
+        }
+
+        .danger-box, .success-box{
+          border:1px solid #dbe2e8;
+          border-radius:10px;
+          padding:10px;
+          margin-bottom:8px;
+        }
+
+        @page{
+          size:auto;
+          margin:15mm;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div>
+          <div class="title">العهد والتنمية - إحصائيات يوم الانتخابات</div>
+          <div class="meta">نظام إدارة الحملة الانتخابية - بيت ساحور</div>
+        </div>
+        <div class="meta">
+          <div><b>تمت الطباعة بواسطة:</b> ${user}</div>
+          <div><b>التاريخ والوقت:</b> ${nowText}</div>
+        </div>
+      </div>
+
+      <div class="summary">${summary}</div>
+
+      <div class="grid">${cards}</div>
+
+      <h3>حسب المراكز</h3>
+      ${centers}
+
+      <h3>حسب العائلات</h3>
+      ${families}
+
+      <h3>تنبيهات اليوم</h3>
+      ${alerts}
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+
+  setTimeout(() => {
+    printWindow.print();
+  }, 500);
+};
+
+window.printDayCentersReport = function(){
+  const user = getCurrentUser() || "-";
+  const now = new Date();
+  const nowText = now.toLocaleString("ar-EG");
+  const timeOnly = now.toLocaleTimeString("ar-EG");
+  const contentEl = document.getElementById("dayCentersTable");
+
+  if(!contentEl){
+    alert("لا يوجد تقرير مراكز للطباعة");
+    return;
+  }
+
+  const selectedListsLabel = selectedDayLists.length ? selectedDayLists.join("، ") : "كل القوائم";
+
+  const printWindow = window.open("", "_blank", "width=1300,height=900");
+  if(!printWindow) return;
+
+  printWindow.document.write(`
+    <html dir="rtl">
+    <head>
+      <meta charset="UTF-8">
+      <title>تقرير المراكز</title>
+      <style>
+        body{
+          font-family:Arial, Tahoma, sans-serif;
+          direction:rtl;
+          margin:0;
+          padding:0;
+          color:#17212b;
+          background:#fff;
+        }
+
+        .print-header{
+          border-bottom:2px solid #dbe2e8;
+          padding:20px 28px 16px;
+        }
+
+        .header-inner{
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:20px;
+        }
+
+        .brand{
+          display:flex;
+          gap:14px;
+          align-items:center;
+        }
+
+        .logo{
+          width:70px;
+          height:70px;
+          border:1px solid #dbe2e8;
+          border-radius:16px;
+          padding:6px;
+          background:#fff;
+        }
+
+        .logo img{
+          width:100%;
+          height:100%;
+          object-fit:contain;
+        }
+
+        .title{
+          font-size:24px;
+          font-weight:bold;
+          color:#0f4c8a;
+          margin-bottom:4px;
+        }
+
+        .sub{
+          font-size:13px;
+          color:#6b7280;
+          line-height:1.8;
+        }
+
+        .meta{
+          text-align:left;
+          font-size:13px;
+          color:#374151;
+          line-height:1.8;
+        }
+
+        .print-body{
+          padding:22px 24px;
+        }
+
+        .report-note{
+          background:#f8fbff;
+          border:1px solid #dbe2e8;
+          border-radius:12px;
+          padding:12px 14px;
+          margin-bottom:16px;
+          font-size:14px;
+          color:#1f2937;
+          line-height:1.8;
+        }
+
+        table{
+          width:100%;
+          border-collapse:collapse;
+          font-size:12px;
+          margin-top:10px;
+        }
+
+        th, td{
+          border:1px solid #dbe2e8;
+          padding:8px 9px;
+          text-align:right;
+          vertical-align:middle;
+          white-space:nowrap;
+        }
+
+        th{
+          background:#eef5fb;
+          color:#0f4c8a;
+          font-weight:bold;
+        }
+
+        tbody tr:nth-child(even){
+          background:#f9fbfd;
+        }
+
+        @page{
+          size:auto;
+          margin:15mm;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="print-header">
+        <div class="header-inner">
+          <div class="brand">
+            <div class="logo">
+              <img src="logo.png" alt="الشعار">
+            </div>
+            <div>
+              <div class="title">العهد والتنمية</div>
+              <div class="sub">نظام إدارة الحملة الانتخابية - بيت ساحور</div>
+              <div class="sub">تقرير المراكز - يوم الانتخابات</div>
+            </div>
+          </div>
+
+          <div class="meta">
+            <div><b>تمت الطباعة بواسطة:</b> ${user}</div>
+            <div><b>التاريخ والوقت:</b> ${nowText}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="print-body">
+        <div class="report-note">
+          <div><b>القوائم المختارة:</b> ${selectedListsLabel}</div>
+          <div><b>وصف التقرير:</b> هذه نتائج المتابعة للمراكز حتى الساعة <b>${timeOnly}</b> من يوم <b>25/04/2026</b>.</div>
+        </div>
+
+        ${contentEl.outerHTML}
+      </div>
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => printWindow.print(), 500);
+};
+
+
+
+window.printDayFamiliesReport = function(){
+  const user = getCurrentUser() || "-";
+  const now = new Date();
+  const nowText = now.toLocaleString("ar-EG");
+  const timeOnly = now.toLocaleTimeString("ar-EG");
+  const contentEl = document.getElementById("dayFamiliesTable");
+
+  if(!contentEl){
+    alert("لا يوجد تقرير عائلات للطباعة");
+    return;
+  }
+
+  const selectedListsLabel = selectedDayLists.length ? selectedDayLists.join("، ") : "كل القوائم";
+
+  const printWindow = window.open("", "_blank", "width=1300,height=900");
+  if(!printWindow) return;
+
+  printWindow.document.write(`
+    <html dir="rtl">
+    <head>
+      <meta charset="UTF-8">
+      <title>تقرير العائلات</title>
+      <style>
+        body{
+          font-family:Arial, Tahoma, sans-serif;
+          direction:rtl;
+          margin:0;
+          padding:0;
+          color:#17212b;
+          background:#fff;
+        }
+
+        .print-header{
+          border-bottom:2px solid #dbe2e8;
+          padding:20px 28px 16px;
+        }
+
+        .header-inner{
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:20px;
+        }
+
+        .brand{
+          display:flex;
+          gap:14px;
+          align-items:center;
+        }
+
+        .logo{
+          width:70px;
+          height:70px;
+          border:1px solid #dbe2e8;
+          border-radius:16px;
+          padding:6px;
+          background:#fff;
+        }
+
+        .logo img{
+          width:100%;
+          height:100%;
+          object-fit:contain;
+        }
+
+        .title{
+          font-size:24px;
+          font-weight:bold;
+          color:#0f4c8a;
+          margin-bottom:4px;
+        }
+
+        .sub{
+          font-size:13px;
+          color:#6b7280;
+          line-height:1.8;
+        }
+
+        .meta{
+          text-align:left;
+          font-size:13px;
+          color:#374151;
+          line-height:1.8;
+        }
+
+        .print-body{
+          padding:22px 24px;
+        }
+
+        .report-note{
+          background:#f8fbff;
+          border:1px solid #dbe2e8;
+          border-radius:12px;
+          padding:12px 14px;
+          margin-bottom:16px;
+          font-size:14px;
+          color:#1f2937;
+          line-height:1.8;
+        }
+
+        table{
+          width:100%;
+          border-collapse:collapse;
+          font-size:12px;
+          margin-top:10px;
+        }
+
+        th, td{
+          border:1px solid #dbe2e8;
+          padding:8px 9px;
+          text-align:right;
+          vertical-align:middle;
+          white-space:nowrap;
+        }
+
+        th{
+          background:#eef5fb;
+          color:#0f4c8a;
+          font-weight:bold;
+        }
+
+        tbody tr:nth-child(even){
+          background:#f9fbfd;
+        }
+
+        @page{
+          size:auto;
+          margin:15mm;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="print-header">
+        <div class="header-inner">
+          <div class="brand">
+            <div class="logo">
+              <img src="logo.png" alt="الشعار">
+            </div>
+            <div>
+              <div class="title">العهد والتنمية</div>
+              <div class="sub">نظام إدارة الحملة الانتخابية - بيت ساحور</div>
+              <div class="sub">تقرير العائلات - يوم الانتخابات</div>
+            </div>
+          </div>
+
+          <div class="meta">
+            <div><b>تمت الطباعة بواسطة:</b> ${user}</div>
+            <div><b>التاريخ والوقت:</b> ${nowText}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="print-body">
+        <div class="report-note">
+          <div><b>القوائم المختارة:</b> ${selectedListsLabel}</div>
+          <div><b>وصف التقرير:</b> هذه نتائج المتابعة للعائلات حتى الساعة <b>${timeOnly}</b> من يوم <b>25/04/2026</b>.</div>
+        </div>
+
+        ${contentEl.outerHTML}
+      </div>
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => printWindow.print(), 500);
+};
+
+
+
+window.exportDayDashboardExcel = function(){
+  const base = getFilteredVotersForDayDashboard();
+
+  const rows = base.map((v, i) => {
+    const latest = latestGlobalMap[v.voterNumber] || {};
+    const voted = electionDayMap[v.voterNumber]?.voted ? "صوّت" : "لم يصوّت";
+
+    return `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${v.name || ""}</td>
+        <td>${familyGroupMap[v.family] || "غير مجمعة"}</td>
+        <td>${v.family || ""}</td>
+        <td>${v.center || ""}</td>
+        <td>${latest.list || "غير مفروز"}</td>
+        <td>${voted}</td>
+      </tr>
+    `;
+  }).join("");
+
+  const selectedListsLabel = selectedDayLists.length
+    ? selectedDayLists.join("، ")
+    : "كل القوائم";
+
+  const html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:x="urn:schemas-microsoft-com:office:excel"
+          xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body{
+          font-family: Arial, Tahoma, sans-serif;
+          direction: rtl;
+          text-align: right;
+          padding: 20px;
+        }
+
+        .title{
+          font-size: 22px;
+          font-weight: bold;
+          margin-bottom: 8px;
+        }
+
+        .sub{
+          font-size: 14px;
+          margin-bottom: 6px;
+        }
+
+        table{
+          border-collapse: collapse;
+          width: 100%;
+          direction: rtl;
+        }
+
+        th, td{
+          border: 1px solid #999;
+          padding: 6px;
+          text-align: right;
+          white-space: nowrap;
+          font-size: 13px;
+        }
+
+        th{
+          background: #f3f5f7;
+          font-weight: bold;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="title">العهد والتنمية - إحصائيات يوم الانتخابات</div>
+      <div class="sub">القوائم المختارة: <b>${selectedListsLabel}</b></div>
+      <div class="sub">عدد الناخبين: <b>${base.length}</b></div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>الاسم</th>
+            <th>العائلة الأم</th>
+            <th>العائلة</th>
+            <th>المركز</th>
+            <th>القائمة السياسية</th>
+            <th>حالة التصويت</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob([html], {
+    type: "application/vnd.ms-excel;charset=utf-8;"
+  });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "election_day_dashboard.xls";
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+
+window.exportDayCentersExcel = function(){
+  const table = document.getElementById("dayCentersTable");
+  if(!table){
+    alert("لا يوجد جدول مراكز للتصدير");
+    return;
+  }
+
+  const html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:x="urn:schemas-microsoft-com:office:excel"
+          xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta charset="UTF-8">
+    </head>
+    <body>
+      ${table.outerHTML}
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "day_centers_report.xls";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+window.exportDayFamiliesExcel = function(){
+  const table = document.getElementById("dayFamiliesTable");
+  if(!table){
+    alert("لا يوجد جدول عائلات للتصدير");
+    return;
+  }
+
+  const html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:x="urn:schemas-microsoft-com:office:excel"
+          xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta charset="UTF-8">
+    </head>
+    <body>
+      ${table.outerHTML}
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "day_families_report.xls";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+
+
 async function init(){
   try{
     updateLoggedInPill();
@@ -4207,19 +5772,31 @@ async function init(){
     await loadFinalDecisions();
 
     setSyncStatus("جار تحميل العائلات والمندوبين...");
-    await loadFamilyGroups();
-    await loadDelegates();
-    await loadDelegateAssignments();
+await loadFamilyGroups();
+await loadDelegates();
+await loadDelegateAssignments();
 
-    fillFilters();
-    fillAgreedFilters();
-    fillDelegateFilter();
-    fillFamilyListFilter();
-    buildDashboard();
-    buildDifferences();
-    buildAgreed();
-    searchVoters(1);
-    renderFamilyGroupsUI();
+setSyncStatus("جار تحميل يوم الانتخابات...");
+await loadElectionDayTracking();
+
+fillFilters();
+fillAgreedFilters();
+fillDelegateFilter();
+fillElectionDayFilters();
+fillFamilyListFilter();
+
+buildDayListsFilterOptions();
+
+buildDashboard();
+buildDifferences();
+buildAgreed();
+buildElectionDayTab();
+buildRemainingTab();
+buildDelegatesDayTab();
+buildDayDashboard();
+
+searchVoters(1);
+renderFamilyGroupsUI();
 
     setSyncStatus("متصل وجاهز");
   }catch(err){
@@ -4306,6 +5883,31 @@ document
 .addEventListener("change", function(){
   selectedDelegateAssignmentFilter = this.value || "all";
   buildAgreed();
+});
+
+document.getElementById("daySearchInput")?.addEventListener("input", buildElectionDayTab);
+document.getElementById("dayCenterFilter")?.addEventListener("change", buildElectionDayTab);
+document.getElementById("dayParentFamilyFilter")?.addEventListener("change", buildElectionDayTab);
+document.getElementById("dayDelegateFilter")?.addEventListener("change", buildElectionDayTab);
+document.getElementById("dayFieldStatusFilter")?.addEventListener("change", buildElectionDayTab);
+
+document.getElementById("remainingCenterFilter")?.addEventListener("change", buildRemainingTab);
+document.getElementById("remainingParentFamilyFilter")?.addEventListener("change", buildRemainingTab);
+document.getElementById("remainingDelegateFilter")?.addEventListener("change", buildRemainingTab);
+document.getElementById("remainingFieldStatusFilter")?.addEventListener("change", buildRemainingTab);
+
+document.getElementById("dayListsFilterBtn")?.addEventListener("click", function(e){
+  e.stopPropagation();
+  document.getElementById("dayListsFilterDropdown").classList.toggle("hidden");
+});
+
+document.addEventListener("click", function(e){
+  const wrap = document.getElementById("dayListsFilterWrap");
+  const dropdown = document.getElementById("dayListsFilterDropdown");
+
+  if(wrap && !wrap.contains(e.target)){
+    dropdown.classList.add("hidden");
+  }
 });
 
 async function addDelegate(name){
