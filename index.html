@@ -5033,6 +5033,9 @@ if(contentId === "agreedBox"){
     const delegateFilter =
       document.getElementById("agreedDelegateFilter")?.value || "all";
 
+    const delegateAssignmentFilter =
+       document.getElementById("agreedDelegateAssignmentFilter")?.value || "all";
+
     const name = (r.name || "").toLowerCase();
     const family = (r.family || "").toLowerCase();
     const parentFamily = (r.parentFamily || "غير مجمعة").toLowerCase();
@@ -5067,9 +5070,17 @@ if(contentId === "agreedBox"){
 
     const assignedDelegate = getDelegateForVoter(r.voterNumber);
 
-    if(delegateFilter !== "all" && assignedDelegate !== delegateFilter){
-      return false;
-    }
+if(delegateFilter !== "all" && assignedDelegate !== delegateFilter){
+  return false;
+}
+
+if(delegateAssignmentFilter === "assigned" && !assignedDelegate){
+  return false;
+}
+
+if(delegateAssignmentFilter === "unassigned" && assignedDelegate){
+  return false;
+}
 
     return true;
   });
