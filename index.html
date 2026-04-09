@@ -1412,6 +1412,10 @@ placeholder="بحث بالاسم أو العائلة أو مركز الاقتر�
 <option value="all">كل المندوبين</option>
 </select>
 
+<select id="supervisorFilter" class="input">
+  <option value="all">كل المشرفين</option>
+</select>
+
 <select id="agreedDelegateAssignmentFilter" class="input">
   <option value="all">كل الحالات</option>
   <option value="assigned">لديه مندوب</option>
@@ -1420,6 +1424,10 @@ placeholder="بحث بالاسم أو العائلة أو مركز الاقتر�
 
 <button class="btn btn-light" onclick="openDelegatesModal()">
 + مندوب
+</button>
+
+<button class="btn btn-light" onclick="openSupervisorsModal()">
++ مشرف
 </button>
 
 <button class="btn btn-primary" onclick="buildAgreed()">
@@ -1505,27 +1513,34 @@ onclick="exportTableToExcel('agreedTable','agreed_voters_report')">
   <div class="card">
     <h3 class="card-title">🚨 المتبقين</h3>
 
-    <div class="filters">
-      <div class="field">
-        <label>المركز</label>
-        <select id="remainingCenterFilter"></select>
-      </div>
+<div class="filters">
+  <div class="field">
+    <label>المركز</label>
+    <select id="remainingCenterFilter"></select>
+  </div>
 
-      <div class="field">
-        <label>العائلة الأم</label>
-        <select id="remainingParentFamilyFilter"></select>
-      </div>
+  <div class="field">
+    <label>العائلة الأم</label>
+    <select id="remainingParentFamilyFilter"></select>
+  </div>
 
-      <div class="field">
-        <label>المندوب</label>
-        <select id="remainingDelegateFilter"></select>
-      </div>
+  <div class="field">
+    <label>المشرف</label>
+    <select id="remainingSupervisorFilter">
+      <option value="all">كل المشرفين</option>
+    </select>
+  </div>
 
-      <div class="field">
-        <label>الحالة الميدانية</label>
-        <select id="remainingFieldStatusFilter"></select>
-      </div>
-    </div>
+  <div class="field">
+    <label>المندوب</label>
+    <select id="remainingDelegateFilter"></select>
+  </div>
+
+  <div class="field">
+    <label>الحالة الميدانية</label>
+    <select id="remainingFieldStatusFilter"></select>
+  </div>
+</div>
 
     <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
       <button class="btn btn-primary" onclick="buildRemainingTab()">تطبيق</button>
@@ -1542,10 +1557,22 @@ onclick="exportTableToExcel('agreedTable','agreed_voters_report')">
 <div id="delegatesDaySection" class="section">
   <div class="card">
     <h3 class="card-title">👥 أداء المندوبين يوم الانتخابات</h3>
+
+    <!-- فلتر المشرف -->
+    <div class="filters" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+      <div class="field" style="min-width:260px;">
+        <label>المشرف</label>
+        <select id="delegatesDaySupervisorFilter">
+          <option value="all">كل المشرفين</option>
+        </select>
+      </div>
+    </div>
+
     <div class="summary-line" id="delegatesDaySummary"></div>
     <div id="delegatesDayBox"></div>
   </div>
 </div>
+
 
 <!-- Day Dashboard -->
 <div id="dayDashboardSection" class="section">
@@ -1727,6 +1754,11 @@ import {
     let delegateAssignmentsMap = {};
     let selectedDelegateFilter = "all";
     let selectedDelegateAssignmentFilter = "all";
+
+let supervisorsList = [];
+let delegateSupervisorMap = {};
+let selectedSupervisorFilter = "all";
+
 let electionDayMap = {};
 let selectedDayLists = [];
 let currentDelegateRemainingName = "";
@@ -1800,6 +1832,34 @@ async function removeDelegateFromFirebase(name){
   await deleteDoc(doc(db, "delegates", name));
 }
 
+// ==========================
+// 👔 المشرفون
+// ==========================
+
+async function loadSupervisors(){
+  supervisorsList = [];
+
+  const snapshot = await getDocs(collection(db, "supervisors"));
+
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    const name = safeText(data.name);
+    if(name) supervisorsList.push(name);
+  });
+
+  supervisorsList = [...new Set(supervisorsList)].sort(sortArabicText);
+}
+
+async function saveSupervisorToFirebase(name){
+  await setDoc(doc(db, "supervisors", name), {
+    name
+  });
+}
+
+async function removeSupervisorFromFirebase(name){
+  await deleteDoc(doc(db, "supervisors", name));
+}
+
 
 // ==========================
 // 🔗 ربط المندوبين بالناخبين
@@ -1830,6 +1890,42 @@ async function saveDelegateAssignmentToFirebase(voterNumber, delegateName){
 
 async function removeDelegateAssignmentFromFirebase(voterNumber){
   await deleteDoc(doc(db, "delegate_assignments", voterNumber));
+}
+
+
+// ==========================
+// 🔗 ربط المندوبين بالمشرفين
+// ==========================
+
+async function loadDelegateSupervisors(){
+  delegateSupervisorMap = {};
+
+  const snapshot = await getDocs(collection(db, "delegate_supervisors"));
+
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    const delegateName = safeText(data.delegateName);
+    const supervisorName = safeText(data.supervisorName);
+
+    if(delegateName && supervisorName){
+      delegateSupervisorMap[delegateName] = supervisorName;
+    }
+  });
+}
+
+async function saveDelegateSupervisorToFirebase(delegateName, supervisorName){
+  await setDoc(doc(db, "delegate_supervisors", delegateName), {
+    delegateName,
+    supervisorName
+  });
+}
+
+async function removeDelegateSupervisorFromFirebase(delegateName){
+  await deleteDoc(doc(db, "delegate_supervisors", delegateName));
+}
+
+function getSupervisorForDelegate(delegateName){
+  return safeText(delegateSupervisorMap[delegateName] || "");
 }
 
 // ==========================
@@ -1884,9 +1980,10 @@ async function saveElectionDayStatus(voterNumber, patch = {}){
   };
 
   await setDoc(doc(db, "election_day_tracking", voterNumber), payload);
-  await loadElectionDayTracking();
-}
 
+  // تحديث محلي بدل سحب كل البيانات من جديد
+  electionDayMap[voterNumber] = payload;
+}
 
 function fillAgreedFilters(){
 
@@ -2094,6 +2191,60 @@ function fillDelegateFilter(){
   sel.value = selectedDelegateFilter || "all";
 }
 
+function fillDelegateFilterBySupervisor(){
+  const sel = document.getElementById("agreedDelegateFilter");
+  if(!sel) return;
+
+  let filteredDelegates = [...delegatesList];
+
+  if(selectedSupervisorFilter !== "all"){
+    filteredDelegates = delegatesList.filter(delegateName => {
+      return getSupervisorForDelegate(delegateName) === selectedSupervisorFilter;
+    });
+  }
+
+  sel.innerHTML = `<option value="all">كل المندوبين</option>`;
+
+  filteredDelegates.forEach((name, index) => {
+    sel.innerHTML += `<option value="${name}">${index + 1} - ${name}</option>`;
+  });
+
+  if(!filteredDelegates.includes(selectedDelegateFilter)){
+    selectedDelegateFilter = "all";
+  }
+
+  sel.value = selectedDelegateFilter || "all";
+}
+
+function fillRemainingDelegateFilterBySupervisor(){
+  const sel = document.getElementById("remainingDelegateFilter");
+  if(!sel) return;
+
+  const selectedSupervisor = safeText(document.getElementById("remainingSupervisorFilter")?.value || "all");
+
+  let filteredDelegates = [...delegatesList];
+
+  if(selectedSupervisor !== "all"){
+    filteredDelegates = delegatesList.filter(delegateName => {
+      return getSupervisorForDelegate(delegateName) === selectedSupervisor;
+    });
+  }
+
+  const currentValue = sel.value || "all";
+
+  sel.innerHTML = `<option value="all">كل المندوبين</option>`;
+
+  filteredDelegates.forEach((name, index) => {
+    sel.innerHTML += `<option value="${name}">${index + 1} - ${name}</option>`;
+  });
+
+  if(!filteredDelegates.includes(currentValue)){
+    sel.value = "all";
+  }else{
+    sel.value = currentValue;
+  }
+}
+
 function fillElectionDayFilters(){
   const centers = ["الكل", ...new Set(voters.map(v => v.center).filter(Boolean))].sort(sortArabicText);
   const parentFamilies = ["الكل", ...new Set(Object.values(familyGroupMap).filter(Boolean))].sort(sortArabicText);
@@ -2226,6 +2377,77 @@ box.innerHTML = delegatesList.map((name, index) => `
 `).join("");
 }
 
+function fillSupervisorFilter(){
+  const sel = document.getElementById("supervisorFilter");
+  if(!sel) return;
+
+  sel.innerHTML = `<option value="all">كل المشرفين</option>`;
+
+  supervisorsList.forEach((name, index) => {
+    sel.innerHTML += `<option value="${name}">${index + 1} - ${name}</option>`;
+  });
+
+  sel.value = selectedSupervisorFilter || "all";
+}
+
+function fillRemainingSupervisorFilter(){
+  const sel = document.getElementById("remainingSupervisorFilter");
+  if(!sel) return;
+
+  const currentValue = sel.value || "all";
+
+  sel.innerHTML = `<option value="all">كل المشرفين</option>`;
+
+  supervisorsList.forEach((name, index) => {
+    sel.innerHTML += `<option value="${name}">${index + 1} - ${name}</option>`;
+  });
+
+  sel.value = supervisorsList.includes(currentValue) ? currentValue : "all";
+}
+
+function supervisorOptionsHtml(selectedSupervisor){
+  return `
+    <option value="">بدون مشرف</option>
+    ${supervisorsList.map((name, index) => `
+      <option value="${name}" ${selectedSupervisor === name ? "selected" : ""}>
+        ${index + 1} - ${name}
+      </option>
+    `).join("")}
+  `;
+}
+
+function fillDelegatesDaySupervisorFilter(){
+  const sel = document.getElementById("delegatesDaySupervisorFilter");
+  if(!sel) return;
+
+  const currentValue = sel.value || "all";
+
+  sel.innerHTML = `<option value="all">كل المشرفين</option>`;
+
+  supervisorsList.forEach((name, index) => {
+    sel.innerHTML += `<option value="${name}">${index + 1} - ${name}</option>`;
+  });
+
+  sel.value = supervisorsList.includes(currentValue) ? currentValue : "all";
+}
+
+function renderSupervisorsList(){
+  const box = document.getElementById("supervisorsListBox");
+  if(!box) return;
+
+  if(!supervisorsList.length){
+    box.innerHTML = `<div class="empty">لا يوجد مشرفون بعد</div>`;
+    return;
+  }
+
+  box.innerHTML = supervisorsList.map((name, index) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;">
+      <div>${index + 1} - ${name}</div>
+      <button class="btn btn-danger btn-sm" onclick="deleteSupervisorByName('${name}')">حذف</button>
+    </div>
+  `).join("");
+}
+
 window.openDelegatesModal = function(){
   document.getElementById("delegatesModal").style.display = "flex";
   document.getElementById("newDelegateName").value = "";
@@ -2271,6 +2493,63 @@ window.deleteDelegateByName = async function(name){
   renderDelegatesList();
   buildAgreed();
 };
+
+window.openSupervisorsModal = function(){
+  document.getElementById("supervisorsModal").style.display = "flex";
+  document.getElementById("newSupervisorName").value = "";
+  renderSupervisorsList();
+  renderDelegateSupervisorAssignments();
+};
+
+window.closeSupervisorsModal = function(){
+  document.getElementById("supervisorsModal").style.display = "none";
+};
+
+window.addNewSupervisorFromModal = async function(){
+  const input = document.getElementById("newSupervisorName");
+  const name = safeText(input.value);
+
+  if(!name){
+    alert("أدخل اسم المشرف");
+    return;
+  }
+
+  const added = await addSupervisor(name);
+
+  if(!added){
+    alert("هذا المشرف موجود مسبقاً أو الاسم غير صالح");
+    return;
+  }
+
+  input.value = "";
+  fillSupervisorFilter();
+  renderSupervisorsList();
+  renderDelegateSupervisorAssignments();
+};
+
+window.deleteSupervisorByName = async function(name){
+  if(!confirm(`هل تريد حذف المشرف: ${name} ؟`)) return;
+
+  await removeSupervisor(name);
+
+  if(selectedSupervisorFilter === name){
+    selectedSupervisorFilter = "all";
+  }
+
+  fillSupervisorFilter();
+  renderSupervisorsList();
+  renderDelegateSupervisorAssignments();
+};
+
+window.changeSupervisorForDelegate = async function(delegateName, selectEl){
+  const supervisorName = safeText(selectEl.value);
+
+  await assignSupervisorToDelegate(delegateName, supervisorName);
+
+  fillSupervisorFilter();
+  renderDelegateSupervisorAssignments();
+};
+
 
     function setSyncStatus(text){
       document.getElementById("syncStatus").textContent = text;
@@ -4106,6 +4385,9 @@ function buildAgreed(){
 const delegateFilter =
 document.getElementById("agreedDelegateFilter")?.value || "all";
 
+const supervisorFilter =
+document.getElementById("supervisorFilter")?.value || "all";
+
 const delegateAssignmentFilter =
 document.getElementById("agreedDelegateAssignmentFilter")?.value || "all";
 
@@ -4153,6 +4435,14 @@ const assignedDelegate = getDelegateForVoter(r.voterNumber);
 
 if(delegateFilter !== "all"){
   if(assignedDelegate !== delegateFilter){
+    return false;
+  }
+}
+
+const assignedSupervisor = getSupervisorForDelegate(assignedDelegate);
+
+if(supervisorFilter !== "all"){
+  if(assignedSupervisor !== supervisorFilter){
     return false;
   }
 }
@@ -4334,22 +4624,24 @@ window.buildRemainingTab = function(){
   const centerFilter = safeText(document.getElementById("remainingCenterFilter")?.value || "الكل");
   const parentFamilyFilter = safeText(document.getElementById("remainingParentFamilyFilter")?.value || "الكل");
   const delegateFilter = safeText(document.getElementById("remainingDelegateFilter")?.value || "all");
+  const supervisorFilter = safeText(document.getElementById("remainingSupervisorFilter")?.value || "all");
   const fieldStatusFilter = safeText(document.getElementById("remainingFieldStatusFilter")?.value || "الكل");
 
-  const rows = getList4Supporters().filter(v => {
+  const rows = getOurBaseForElectionDay().filter(v => {
     const tracking = electionDayMap[v.voterNumber] || {};
     const delegateName = getDelegateForVoter(v.voterNumber) || "";
     const parentFamily = familyGroupMap[v.family] || "غير مجمعة";
+    const supervisorName = getSupervisorForDelegate(delegateName) || "";
 
     const isVoted = tracking.voted === true;
     const effectiveStatus = isVoted ? "صوّت" : "لم يصوّت";
 
-    // أي واحد مش مصوّت يطلع هون
     if(isVoted) return false;
 
     if(centerFilter !== "الكل" && v.center !== centerFilter) return false;
     if(parentFamilyFilter !== "الكل" && parentFamily !== parentFamilyFilter) return false;
     if(delegateFilter !== "all" && delegateName !== delegateFilter) return false;
+    if(supervisorFilter !== "all" && supervisorName !== supervisorFilter) return false;
     if(fieldStatusFilter !== "الكل" && effectiveStatus !== fieldStatusFilter) return false;
 
     return true;
@@ -4396,14 +4688,16 @@ window.buildRemainingTab = function(){
   `;
 };
 
+
 window.closeDelegateRemainingModal = function(){
   document.getElementById("delegateRemainingModal").style.display = "none";
 };
 
-window.openDelegateRemainingList = function(delegateName){
-currentDelegateRemainingName = delegateName;
 
-  const rows = getList4Supporters().filter(v => {
+window.openDelegateRemainingList = function(delegateName){
+  currentDelegateRemainingName = delegateName;
+
+  const rows = getOurBaseForElectionDay().filter(v => {
     const tracking = electionDayMap[v.voterNumber] || {};
     const assignedDelegate = getDelegateForVoter(v.voterNumber) || "";
     const isVoted = tracking.voted === true;
@@ -4628,16 +4922,27 @@ window.printDelegateRemainingList = function(){
 
 
 window.buildDelegatesDayTab = function(){
-  const base = getList4Supporters();
+  const supervisorFilter = document.getElementById("delegatesDaySupervisorFilter")?.value || "all";
+  const base = getOurBaseForElectionDay();
 
-  const rows = delegatesList.map(name => {
+  let filteredDelegates = [...delegatesList];
+
+  if(supervisorFilter !== "all"){
+    filteredDelegates = delegatesList.filter(name => {
+      return getSupervisorForDelegate(name) === supervisorFilter;
+    });
+  }
+
+  const rows = filteredDelegates.map(name => {
     const assigned = base.filter(v => getDelegateForVoter(v.voterNumber) === name);
     const voted = assigned.filter(v => electionDayMap[v.voterNumber]?.voted).length;
     const remaining = assigned.length - voted;
     const progress = assigned.length ? Math.round((voted / assigned.length) * 100) : 0;
+    const supervisorName = getSupervisorForDelegate(name) || "-";
 
     return {
       name,
+      supervisorName,
       total: assigned.length,
       voted,
       remaining,
@@ -4646,7 +4951,9 @@ window.buildDelegatesDayTab = function(){
   }).sort((a,b) => b.total - a.total);
 
   document.getElementById("delegatesDaySummary").innerHTML = `
-    <span>عدد المندوبين: <b>${rows.length}</b></span>
+    <span>عدد المندوبين الظاهرين: <b>${rows.length}</b></span>
+    <span>—</span>
+    <span>المشرف المختار: <b>${supervisorFilter === "all" ? "كل المشرفين" : supervisorFilter}</b></span>
   `;
 
   document.getElementById("delegatesDayBox").innerHTML = `
@@ -4655,6 +4962,7 @@ window.buildDelegatesDayTab = function(){
         <thead>
           <tr>
             <th>#</th>
+            <th>المشرف</th>
             <th>المندوب</th>
             <th>المسندين</th>
             <th>صوّت</th>
@@ -4666,6 +4974,7 @@ window.buildDelegatesDayTab = function(){
           ${rows.map((r, i) => `
             <tr>
               <td>${i + 1}</td>
+              <td>${r.supervisorName}</td>
               <td>${r.name}</td>
               <td>${r.total}</td>
               <td>${r.voted}</td>
@@ -4688,6 +4997,8 @@ window.buildDelegatesDayTab = function(){
     </div>
   `;
 };
+
+
 
 
 window.buildDayDashboard = function(){
@@ -4960,11 +5271,19 @@ window.refreshSystem = async function(){
   await loadAssignments();
   await loadFinalDecisions();
   await loadElectionDayTracking();
+await loadSupervisors();
+await loadDelegateSupervisors();
 
-  fillFamilyListFilter();
-  fillFamilyCentersListFilter();
-  fillElectionDayFilters();
+fillFamilyListFilter();
+fillFamilyCentersListFilter();
+fillElectionDayFilters();
+fillSupervisorFilter();
+fillRemainingSupervisorFilter();
+fillDelegatesDaySupervisorFilter();
 buildDayListsFilterOptions();
+
+fillDelegateFilterBySupervisor();
+fillRemainingDelegateFilterBySupervisor();
 
   buildDashboard();
   buildDifferences();
@@ -5033,6 +5352,9 @@ if(contentId === "agreedBox"){
     const delegateFilter =
       document.getElementById("agreedDelegateFilter")?.value || "all";
 
+    const supervisorFilter =
+       document.getElementById("supervisorFilter")?.value || "all";
+
     const delegateAssignmentFilter =
        document.getElementById("agreedDelegateAssignmentFilter")?.value || "all";
 
@@ -5069,8 +5391,13 @@ if(contentId === "agreedBox"){
 }
 
     const assignedDelegate = getDelegateForVoter(r.voterNumber);
+    const assignedSupervisor = getSupervisorForDelegate(assignedDelegate);
 
 if(delegateFilter !== "all" && assignedDelegate !== delegateFilter){
+  return false;
+}
+
+if(supervisorFilter !== "all" && assignedSupervisor !== supervisorFilter){
   return false;
 }
 
@@ -6024,10 +6351,13 @@ async function init(){
     await loadAssignments();
     await loadFinalDecisions();
 
-    setSyncStatus("جار تحميل العائلات والمندوبين...");
+setSyncStatus("جار تحميل العائلات والمندوبين...");
 await loadFamilyGroups();
 await loadDelegates();
 await loadDelegateAssignments();
+await loadSupervisors();
+await loadDelegateSupervisors();
+
 
 setSyncStatus("جار تحميل يوم الانتخابات...");
 await loadElectionDayTracking();
@@ -6035,8 +6365,14 @@ await loadElectionDayTracking();
 fillFilters();
 fillAgreedFilters();
 fillDelegateFilter();
+fillSupervisorFilter();
+fillRemainingSupervisorFilter();
+fillDelegatesDaySupervisorFilter();
 fillElectionDayFilters();
 fillFamilyListFilter();
+
+fillDelegateFilterBySupervisor();
+fillRemainingDelegateFilterBySupervisor();
 
 buildDayListsFilterOptions();
 
@@ -6124,10 +6460,20 @@ document.addEventListener("click", function(e){
     dropdown.classList.add("hidden");
   }
 });
+
 document
 .getElementById("agreedDelegateFilter")
 .addEventListener("change", function(){
   selectedDelegateFilter = this.value || "all";
+  buildAgreed();
+});
+
+document
+.getElementById("supervisorFilter")
+.addEventListener("change", function(){
+  selectedSupervisorFilter = this.value || "all";
+  selectedDelegateFilter = "all";
+  fillDelegateFilterBySupervisor();
   buildAgreed();
 });
 
@@ -6143,11 +6489,20 @@ document.getElementById("dayCenterFilter")?.addEventListener("change", buildElec
 document.getElementById("dayParentFamilyFilter")?.addEventListener("change", buildElectionDayTab);
 document.getElementById("dayDelegateFilter")?.addEventListener("change", buildElectionDayTab);
 document.getElementById("dayFieldStatusFilter")?.addEventListener("change", buildElectionDayTab);
+document.getElementById("dayParentFamilyFilter")?.addEventListener("change", buildElectionDayTab);
 
 document.getElementById("remainingCenterFilter")?.addEventListener("change", buildRemainingTab);
 document.getElementById("remainingParentFamilyFilter")?.addEventListener("change", buildRemainingTab);
 document.getElementById("remainingDelegateFilter")?.addEventListener("change", buildRemainingTab);
 document.getElementById("remainingFieldStatusFilter")?.addEventListener("change", buildRemainingTab);
+document.getElementById("daySearchInput")?.addEventListener("input", buildElectionDayTab);
+
+document.getElementById("delegatesDaySupervisorFilter")?.addEventListener("change", buildDelegatesDayTab);
+
+document.getElementById("remainingSupervisorFilter")?.addEventListener("change", function(){
+  fillRemainingDelegateFilterBySupervisor();
+  buildRemainingTab();
+});
 
 document.getElementById("dayListsFilterBtn")?.addEventListener("click", function(e){
   e.stopPropagation();
@@ -6162,6 +6517,78 @@ document.addEventListener("click", function(e){
     dropdown.classList.add("hidden");
   }
 });
+
+
+function renderDelegateSupervisorAssignments(){
+  const box = document.getElementById("delegateSupervisorAssignmentsBox");
+  if(!box) return;
+
+  if(!delegatesList.length){
+    box.innerHTML = `<div class="empty">لا يوجد مندوبون بعد</div>`;
+    return;
+  }
+
+  box.innerHTML = delegatesList.map((delegateName, index) => {
+    const supervisorName = getSupervisorForDelegate(delegateName);
+
+    return `
+      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:10px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;">
+        <div>${index + 1} - ${delegateName}</div>
+        <div>
+          <select onchange="changeSupervisorForDelegate('${delegateName.replace(/'/g, "\\'")}', this)">
+            ${supervisorOptionsHtml(supervisorName)}
+          </select>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function addSupervisor(name){
+  const cleanName = safeText(name);
+  if(!cleanName) return false;
+
+  if(supervisorsList.includes(cleanName)){
+    return false;
+  }
+
+  await saveSupervisorToFirebase(cleanName);
+  await loadSupervisors();
+  return true;
+}
+
+async function assignSupervisorToDelegate(delegateName, supervisorName){
+  const cleanDelegate = safeText(delegateName);
+  const cleanSupervisor = safeText(supervisorName);
+
+  if(!cleanDelegate) return;
+
+  if(!cleanSupervisor || cleanSupervisor === "all"){
+    await removeDelegateSupervisorFromFirebase(cleanDelegate);
+  }else{
+    await saveDelegateSupervisorToFirebase(cleanDelegate, cleanSupervisor);
+  }
+
+  await loadDelegateSupervisors();
+}
+
+async function removeSupervisor(name){
+  const cleanName = safeText(name);
+  if(!cleanName) return;
+
+  await removeSupervisorFromFirebase(cleanName);
+
+  const delegatesUnderSupervisor = Object.keys(delegateSupervisorMap).filter(delegateName => {
+    return delegateSupervisorMap[delegateName] === cleanName;
+  });
+
+  for(const delegateName of delegatesUnderSupervisor){
+    await removeDelegateSupervisorFromFirebase(delegateName);
+  }
+
+  await loadSupervisors();
+  await loadDelegateSupervisors();
+}
 
 async function addDelegate(name){
   const cleanName = safeText(name);
@@ -6590,6 +7017,39 @@ z-index:9999">
 
   </div>
 </div>
+
+
+<div id="supervisorsModal" style="
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.4);
+align-items:center;
+justify-content:center;
+z-index:9999">
+
+  <div style="background:white;padding:25px;border-radius:16px;width:700px;max-width:95vw;max-height:90vh;overflow:auto">
+
+    <h3 style="margin-top:0">إدارة المشرفين</h3>
+
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <input id="newSupervisorName" placeholder="اسم المشرف" style="flex:1">
+      <button class="btn btn-primary" onclick="addNewSupervisorFromModal()">إضافة</button>
+    </div>
+
+    <div id="supervisorsListBox" style="max-height:220px;overflow:auto;margin-bottom:16px;"></div>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">
+
+    <h4 style="margin:0 0 10px;color:var(--blue)">ربط المندوبين بالمشرفين</h4>
+    <div id="delegateSupervisorAssignmentsBox"></div>
+
+    <button class="btn btn-light" onclick="closeSupervisorsModal()" style="margin-top:12px">
+      إغلاق
+    </button>
+  </div>
+</div>
+
 
 </body>
 </html>
